@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package proto.v1;
+
+import "proto/v1/model.proto";
+
+option go_package = "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1;v1";
+
+message CreateEventRequest {
+    Event event = 1;
+}
+
+message CreateEventResponse {
+    string id = 1;
+}
+
+message UpdateEventRequest {
+    string id = 1;
+    Event event = 2;
+}
+
+message UpdateEventResponse {}
+
+message DeleteEventByIDRequest {
+    string id = 1;
+}
+
+message DeleteEventByIDResponse {}
+
+message FindEventByIDRequest {
+    string id = 1;
+}
+
+message FindEventByIDResponse {
+    Event event = 1;
+}
+
+service EventService {
+    rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {}
+    rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse) {}
+    rpc DeleteEventByID (DeleteEventByIDRequest) returns (DeleteEventByIDResponse) {}
+    rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {}
+}
