@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS "event_invitation"(
+CREATE TABLE IF NOT EXISTS "invitation"(
     "id" VARCHAR(50) PRIMARY KEY,
     "event_id" VARCHAR(50) NOT NULL,
     "user_id" INTEGER NOT NULL,

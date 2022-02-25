@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS "event_invitation";
+DROP TABLE IF EXISTS "invitation";

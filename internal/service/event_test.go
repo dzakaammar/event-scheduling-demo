@@ -6,10 +6,16 @@ import (
 	"testing"
 
 	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/mock"
 	"github.com/dzakaammar/event-scheduling-example/internal/service"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewEventService(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	type args struct {
 		eventRepo internal.EventRepository
 	}
@@ -18,13 +24,17 @@ func TestNewEventService(t *testing.T) {
 		args args
 		want *service.EventService
 	}{
-		// TODO: Add test cases.
+		{
+			name: "OK",
+			args: args{
+				eventRepo: mock.NewMockEventRepository(ctrl),
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := service.NewEventService(tt.args.eventRepo); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("NewEventService() = %v, want %v", got, tt.want)
-			}
+			got := service.NewEventService(tt.args.eventRepo)
+			assert.NotNil(t, got)
 		})
 	}
 }
