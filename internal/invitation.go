@@ -15,16 +15,20 @@ const (
 )
 
 type Invitation struct {
-	ID      string           `validate:"required"`
-	EventID string           `validate:"required"`
-	UserID  string           `validate:"required"`
-	Status  InvitationStatus `validate:"required"`
-	Token   string           `validate:"required"`
+	ID      string `validate:"required" gorm:"primaryKey"`
+	EventID string `validate:"required"`
+	UserID  string `validate:"required"`
+	Status  InvitationStatus
+	Token   string `validate:"required"`
 }
 
-func NewInvitation(eventID string, userID string) *Invitation {
+func (i *Invitation) TableName() string {
+	return "invitation"
+}
+
+func NewInvitation(eventID string, userID string) Invitation {
 	id := uuid.NewV4().String()
-	return &Invitation{
+	return Invitation{
 		ID:      id,
 		EventID: eventID,
 		UserID:  userID,

@@ -6,6 +6,8 @@ services:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=secret
       - POSTGRES_DB=event_schedule
+    ports:
+      - "5432:5432"
   grpc_app:
     build:
       context: .

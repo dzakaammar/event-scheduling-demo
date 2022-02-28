@@ -7,6 +7,7 @@ import (
 
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type GRPCServer struct {
@@ -16,6 +17,7 @@ type GRPCServer struct {
 func NewGRPCServer(endpoint v1.EventServiceServer) *GRPCServer {
 	srv := grpc.NewServer()
 	v1.RegisterEventServiceServer(srv, endpoint)
+	reflection.Register(srv)
 
 	return &GRPCServer{
 		srv: srv,
@@ -28,6 +30,7 @@ func (g *GRPCServer) Start(address string) error {
 		return fmt.Errorf("failed to listen: %v", err)
 	}
 
+	fmt.Println("grpc server is running on ", address)
 	return g.srv.Serve(lis)
 }
 

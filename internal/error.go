@@ -5,7 +5,11 @@ import (
 	"fmt"
 )
 
-var ErrInvalidRequest = errors.New("invalid request")
+var (
+	ErrInvalidRequest   = errors.New("invalid request")
+	ErrValidationFailed = errors.New("validation failed")
+	ErrInvalidTimezone  = errors.New("invalid timezone")
+)
 
 type Error struct {
 	err error

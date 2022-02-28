@@ -10,8 +10,12 @@ type CreateEventRequest struct {
 }
 
 func (c *CreateEventRequest) Validate() error {
-	if c.ActorID == "" || c.Event == nil {
-		return ErrInvalidRequest
+	if c.ActorID == "" {
+		return WrapErr(ErrValidationFailed, "invalid actor id")
+	}
+
+	if c.Event == nil {
+		return WrapErr(ErrValidationFailed, "invalid event")
 	}
 
 	return c.Event.Validate()
@@ -23,8 +27,12 @@ type DeleteEventByIDRequest struct {
 }
 
 func (d *DeleteEventByIDRequest) Validate() error {
-	if d.ActorID == "" || d.EventID == "" {
-		return ErrInvalidRequest
+	if d.ActorID == "" {
+		return WrapErr(ErrValidationFailed, "invalid actor id")
+	}
+
+	if d.EventID == "" {
+		return WrapErr(ErrValidationFailed, "invalid event id")
 	}
 
 	return nil
@@ -37,8 +45,12 @@ type UpdateEventRequest struct {
 }
 
 func (u *UpdateEventRequest) Validate() error {
-	if u.ActorID == "" || u.Event == nil {
-		return ErrInvalidRequest
+	if u.ActorID == "" {
+		return WrapErr(ErrValidationFailed, "invalid actor id")
+	}
+
+	if u.Event == nil {
+		return WrapErr(ErrValidationFailed, "invalid event")
 	}
 
 	return u.Event.Validate()
@@ -50,7 +62,7 @@ type FindEventByIDRequest struct {
 
 func (f *FindEventByIDRequest) Validate() error {
 	if f.EventID == "" {
-		return ErrInvalidRequest
+		return WrapErr(ErrValidationFailed, "invalid event id")
 	}
 
 	return nil

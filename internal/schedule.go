@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/satori/uuid"
@@ -15,20 +16,48 @@ const (
 	RecurringType_Every_Month
 )
 
+func (r RecurringType) ToInterval() int64 {
+	switch r {
+	case RecurringType_Daily:
+		return int64(time.Duration(24 * time.Hour).Seconds())
+	case RecurringType_Every_Week:
+		return int64(time.Duration(24 * 7 * time.Hour).Seconds())
+	default:
+		return 0
+	}
+}
+
 type Schedule struct {
-	ID            string        `validate:"required"`
-	EventID       string        `validate:"required"`
-	StartTime     time.Time     `validate:"required"`
-	Duration      time.Duration `validate:"required"`
-	IsFullDay     bool          `validate:"required"`
-	RecurringType RecurringType `validate:"required"`
+	ID                string        `validate:"required" gorm:"primaryKey"`
+	EventID           string        `validate:"required"`
+	StartTime         int64         `validate:"required"`
+	Duration          time.Duration `validate:"required"`
+	IsFullDay         bool
+	RecurringType     RecurringType `gorm:"-"`
+	RecurringInterval int64
 }
 
-func (s *Schedule) EndTime() time.Time {
-	return s.StartTime.Add(s.Duration)
+func (s *Schedule) TableName() string {
+	return "schedule"
 }
 
-func NewSchedule(eventID string, start, end string, isFullDay bool) (Schedule, error) {
+func (s *Schedule) ActualStartTime() time.Time {
+	return time.Unix(s.StartTime, 0).UTC()
+}
+
+func (s *Schedule) StartTimeIn(loc string) (time.Time, error) {
+	l, err := time.LoadLocation(loc)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("invalid timezone: %s", loc)
+	}
+	return time.Unix(s.StartTime, 0).In(l), nil
+}
+
+func (s *Schedule) EndTimeFrom(st time.Time) time.Time {
+	return st.Add(s.Duration * time.Minute)
+}
+
+func NewSchedule(eventID string, start, end string, isFullDay bool, rt RecurringType) (Schedule, error) {
 	startTime, err := time.Parse(time.RFC3339, start)
 	if err != nil {
 		return Schedule{}, err
@@ -39,24 +68,16 @@ func NewSchedule(eventID string, start, end string, isFullDay bool) (Schedule, e
 		return Schedule{}, err
 	}
 
-	return Schedule{
-		ID:        uuid.NewV4().String(),
-		EventID:   eventID,
-		StartTime: startTime.UTC(),
-		Duration:  endTime.UTC().Sub(startTime.UTC()),
-		IsFullDay: isFullDay,
-	}, nil
-}
-
-func (s *Schedule) RecurringInterval() int64 {
-	switch s.RecurringType {
-	case RecurringType_Daily:
-		return int64(time.Duration(24 * time.Hour).Seconds())
-	case RecurringType_Every_Week:
-		return int64(time.Duration(24 * 7 * time.Hour).Seconds())
-	case RecurringType_Every_Month:
-		return 0
-	default:
-		return 0
+	s := Schedule{
+		ID:            uuid.NewV4().String(),
+		EventID:       eventID,
+		StartTime:     startTime.UTC().Unix(),
+		Duration:      time.Duration(endTime.UTC().Sub(startTime.UTC()).Minutes()),
+		IsFullDay:     isFullDay,
+		RecurringType: rt,
 	}
+	s.RecurringInterval = rt.ToInterval()
+
+	fmt.Println(s)
+	return s, nil
 }

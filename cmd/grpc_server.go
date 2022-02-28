@@ -1,24 +1,28 @@
 package cmd
 
 import (
-	"log"
-
 	"github.com/dzakaammar/event-scheduling-example/internal"
 	"github.com/dzakaammar/event-scheduling-example/internal/endpoint"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
 	"github.com/dzakaammar/event-scheduling-example/internal/server"
 	"github.com/dzakaammar/event-scheduling-example/internal/service"
-	"github.com/jmoiron/sqlx"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func runGRPCServer(_ *cobra.Command, _ []string) error {
+	log.SetFormatter(&log.JSONFormatter{})
+
 	cfg, err := internal.LoadConfig(".")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	dbConn, err := sqlx.Open(cfg.DbDriver, cfg.DbSource)
+	dbConn, err := gorm.Open(postgres.New(postgres.Config{
+		DSN: cfg.DbSource,
+	}))
 	if err != nil {
 		log.Fatal(err)
 	}

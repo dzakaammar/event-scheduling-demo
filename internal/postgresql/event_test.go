@@ -7,12 +7,12 @@ import (
 
 	"github.com/dzakaammar/event-scheduling-example/internal"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
-	"github.com/jmoiron/sqlx"
+	"gorm.io/gorm"
 )
 
 func TestNewEventRepository(t *testing.T) {
 	type args struct {
-		db *sqlx.DB
+		db *gorm.DB
 	}
 	tests := []struct {
 		name string
@@ -32,7 +32,7 @@ func TestNewEventRepository(t *testing.T) {
 
 func TestEventRepository_Store(t *testing.T) {
 	type fields struct {
-		db *sqlx.DB
+		db *gorm.DB
 	}
 	type args struct {
 		ctx   context.Context
@@ -58,7 +58,7 @@ func TestEventRepository_Store(t *testing.T) {
 
 func TestEventRepository_DeleteByID(t *testing.T) {
 	type fields struct {
-		db *sqlx.DB
+		db *gorm.DB
 	}
 	type args struct {
 		ctx context.Context
@@ -84,7 +84,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 
 func TestEventRepository_Update(t *testing.T) {
 	type fields struct {
-		db *sqlx.DB
+		db *gorm.DB
 	}
 	type args struct {
 		ctx   context.Context
@@ -110,7 +110,7 @@ func TestEventRepository_Update(t *testing.T) {
 
 func TestEventRepository_FindByID(t *testing.T) {
 	type fields struct {
-		db *sqlx.DB
+		db *gorm.DB
 	}
 	type args struct {
 		ctx context.Context

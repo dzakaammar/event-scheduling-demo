@@ -15,19 +15,35 @@ func init() {
 }
 
 type Event struct {
-	ID          string
+	ID          string       `validate:"required" gorm:"primaryKey"`
 	Title       string       `validate:"required"`
 	Description string       `validate:"required"`
 	Timezone    string       `validate:"required"`
-	Schedules   []Schedule   `validate:"required,dive,required"`
-	Invitations []Invitation `validate:"dive"`
-	CreatedBy   string       `validate:"required"`
-	CreatedAt   time.Time    `validate:"required"`
+	Schedules   []Schedule   `validate:"required,dive,required" gorm:"foreignKey:EventID"`
+	Invitations []Invitation `validate:"dive" gorm:"foreignKey:EventID"`
+	CreatedBy   string       `gorm:"<-:create"`
+	CreatedAt   time.Time    `gorm:"<-:create"`
 	UpdatedAt   *time.Time
 }
 
+func (e *Event) TableName() string {
+	return "event"
+}
+
 func (e *Event) Validate() error {
+	_, err := time.LoadLocation(e.Timezone)
+	if err != nil {
+		return WrapErr(ErrInvalidTimezone, e.Timezone)
+	}
 	return validate.Struct(e)
+}
+
+func (e *Event) GetUpdatedAt() string {
+	if e.UpdatedAt == nil {
+		return time.Time{}.Format(time.RFC3339)
+	}
+
+	return e.UpdatedAt.Format(time.RFC3339)
 }
 
 func NewEvent() *Event {

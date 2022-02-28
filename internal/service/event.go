@@ -23,8 +23,6 @@ func (e *EventService) CreateEvent(ctx context.Context, req *internal.CreateEven
 		return err
 	}
 
-	req.Event.CreatedBy = req.ActorID
-
 	err = e.eventRepo.Store(ctx, req.Event)
 	if err != nil {
 		return err

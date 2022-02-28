@@ -12,6 +12,9 @@ FROM alpine:latest
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/migrate .
+COPY --from=builder /usr/local/go/lib/time/zoneinfo.zip /
+ENV ZONEINFO=/zoneinfo.zip
+COPY app.env .
 COPY start.sh .
 COPY wait-for.sh .
 COPY sql/migrations ./migrations

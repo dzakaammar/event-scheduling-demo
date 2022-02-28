@@ -2,46 +2,63 @@ package postgresql
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/dzakaammar/event-scheduling-example/internal"
-	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type EventRepository struct {
-	db *sqlx.DB
+	db *gorm.DB
 }
 
-func NewEventRepository(db *sqlx.DB) *EventRepository {
+func NewEventRepository(db *gorm.DB) *EventRepository {
 	return &EventRepository{
 		db: db,
 	}
 }
 
 func (e *EventRepository) Store(ctx context.Context, event *internal.Event) error {
-	trx, err := e.db.BeginTxx(ctx, &sql.TxOptions{})
-	if err != nil {
-		return err
-	}
-	defer trx.Rollback()
+	trx := e.db.Begin()
 
-	res, err := trx.Exec(`INSERT INTO public.event (id, title, description, timezone, created_by, created_at) 
-	VALUES ($1, $2, $3, $4, $5, $6)`, event.ID, event.Title, event.Description, event.Timezone, event.CreatedBy, event.CreatedAt)
+	err := trx.WithContext(ctx).Create(event).Error
 	if err != nil {
+		trx.Rollback()
 		return err
 	}
 
-	return trx.Commit()
+	return trx.Commit().Error
 }
 
 func (e *EventRepository) DeleteByID(ctx context.Context, id string) error {
+	err := e.db.WithContext(ctx).Where("id = ?", id).Delete(&internal.Event{}).Error
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
 	return nil
 }
 
 func (e *EventRepository) Update(ctx context.Context, event *internal.Event) error {
-	return nil
+	trx := e.db.Begin()
+
+	err := trx.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(event).Error
+	if err != nil {
+		trx.Rollback()
+		return err
+	}
+
+	return trx.Commit().Error
 }
 
 func (e *EventRepository) FindByID(ctx context.Context, id string) (*internal.Event, error) {
-	return nil, nil
+	var event *internal.Event
+
+	err := e.db.WithContext(ctx).Preload(clause.Associations).Where("id = ?", id).First(&event).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return event, nil
 }
