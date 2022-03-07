@@ -112,28 +112,13 @@ func parseCreateEventRequest(ctx context.Context, req *v1.CreateEventRequest) (*
 	event.CreatedBy = actorID
 	event.CreatedAt = time.Now()
 
-	var schedules []internal.Schedule
-	for _, sch := range req.GetEvent().GetSchedule() {
-		s, err := internal.NewSchedule(
-			event.ID,
-			sch.GetStartTime(),
-			sch.GetEndTime(),
-			sch.GetIsFullDay(),
-			mapRecurringType(sch.GetRecurringType()),
-		)
-		if err != nil {
-			return nil, status.Error(codes.InvalidArgument, err.Error())
-		}
-		schedules = append(schedules, s)
+	sch, err := parseSchedules(req.GetEvent().GetSchedule(), event.ID)
+	if err != nil {
+		return nil, err
 	}
-	event.Schedules = schedules
+	event.Schedules = sch
 
-	var invitations []internal.Invitation
-	for _, userID := range req.GetEvent().GetAttendees() {
-		i := internal.NewInvitation(event.ID, userID)
-		invitations = append(invitations, i)
-	}
-	event.Invitations = invitations
+	event.Invitations = parseInvitations(req.GetEvent().GetAttendees(), event.ID)
 
 	return &internal.CreateEventRequest{
 		ActorID: actorID,
@@ -166,10 +151,25 @@ func parseUpdateEventByIDRequest(ctx context.Context, req *v1.UpdateEventRequest
 		UpdatedAt:   &now,
 	}
 
+	sch, err := parseSchedules(req.GetEvent().GetSchedule(), event.ID)
+	if err != nil {
+		return nil, err
+	}
+	event.Schedules = sch
+	event.Invitations = parseInvitations(req.GetEvent().GetAttendees(), event.ID)
+
+	return &internal.UpdateEventRequest{
+		ID:      req.GetId(),
+		ActorID: extractAuthorization(ctx),
+		Event:   &event,
+	}, nil
+}
+
+func parseSchedules(sch []*v1.Schedule, eventID string) ([]internal.Schedule, error) {
 	var schedules []internal.Schedule
-	for _, sch := range req.GetEvent().GetSchedule() {
+	for _, sch := range sch {
 		s, err := internal.NewSchedule(
-			event.ID,
+			eventID,
 			sch.GetStartTime(),
 			sch.GetEndTime(),
 			sch.GetIsFullDay(),
@@ -180,20 +180,16 @@ func parseUpdateEventByIDRequest(ctx context.Context, req *v1.UpdateEventRequest
 		}
 		schedules = append(schedules, s)
 	}
-	event.Schedules = schedules
+	return schedules, nil
+}
 
+func parseInvitations(attendees []string, eventID string) []internal.Invitation {
 	var invitations []internal.Invitation
-	for _, userID := range req.GetEvent().GetAttendees() {
-		i := internal.NewInvitation(event.ID, userID)
+	for _, userID := range attendees {
+		i := internal.NewInvitation(eventID, userID)
 		invitations = append(invitations, i)
 	}
-	event.Invitations = invitations
-
-	return &internal.UpdateEventRequest{
-		ID:      req.GetId(),
-		ActorID: extractAuthorization(ctx),
-		Event:   &event,
-	}, nil
+	return invitations
 }
 
 func parseEventToPB(event *internal.Event) (*v1.Event, error) {

@@ -7,16 +7,15 @@ import (
 	"github.com/satori/uuid"
 )
 
-type RecurringType uint
+type RecurringType string
 
 const (
-	RecurringType_None RecurringType = iota
-	RecurringType_Daily
-	RecurringType_Every_Week
-	RecurringType_Every_Month
+	RecurringType_None       RecurringType = "NONE"
+	RecurringType_Daily      RecurringType = "DAILY"
+	RecurringType_Every_Week RecurringType = "WEEK"
 )
 
-func (r RecurringType) ToInterval() int64 {
+func (r RecurringType) interval() int64 {
 	switch r {
 	case RecurringType_Daily:
 		return int64(time.Duration(24 * time.Hour).Seconds())
@@ -33,16 +32,12 @@ type Schedule struct {
 	StartTime         int64         `validate:"required"`
 	Duration          time.Duration `validate:"required"`
 	IsFullDay         bool
-	RecurringType     RecurringType `gorm:"-"`
+	RecurringType     RecurringType
 	RecurringInterval int64
 }
 
 func (s *Schedule) TableName() string {
 	return "schedule"
-}
-
-func (s *Schedule) ActualStartTime() time.Time {
-	return time.Unix(s.StartTime, 0).UTC()
 }
 
 func (s *Schedule) StartTimeIn(loc string) (time.Time, error) {
@@ -76,8 +71,7 @@ func NewSchedule(eventID string, start, end string, isFullDay bool, rt Recurring
 		IsFullDay:     isFullDay,
 		RecurringType: rt,
 	}
-	s.RecurringInterval = rt.ToInterval()
+	s.RecurringInterval = rt.interval()
 
-	fmt.Println(s)
 	return s, nil
 }
