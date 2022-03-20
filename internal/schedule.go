@@ -18,9 +18,9 @@ const (
 func (r RecurringType) interval() int64 {
 	switch r {
 	case RecurringType_Daily:
-		return int64(time.Duration(24 * time.Hour).Seconds())
+		return int64(24 * time.Hour.Seconds())
 	case RecurringType_Every_Week:
-		return int64(time.Duration(24 * 7 * time.Hour).Seconds())
+		return int64(24 * 7 * time.Hour.Seconds())
 	default:
 		return 0
 	}
