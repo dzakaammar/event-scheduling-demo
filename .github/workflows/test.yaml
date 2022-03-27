@@ -20,13 +20,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Install golangci-lint
-        uses: golangci/golangci-lint-action@v2
-        with:
-          version: latest
+      - name: Install dependencies
+        run: make deps
 
       - name: Lint
         run: make lint
+
+      - name: Cyclomatic Complexity Checker
+        run: make cc
 
       - name: Test
         run: make test
