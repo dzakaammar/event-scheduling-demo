@@ -30,4 +30,7 @@ jobs:
         run: make cc
 
       - name: Test
-        run: make test
+        run: make test COVER_PROFILE_FILE=cover.out
+
+      - name: Coverage Check
+        run: make check.coverage COVER_PROFILE_FILE=cover.out
