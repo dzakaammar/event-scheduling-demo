@@ -2,7 +2,7 @@
 
 :exclamation: This is just a demo app.
 
-## :pushpin: TODO
+## :pushpin: TODOs
 
 Feature related:
 
@@ -19,5 +19,7 @@ Others:
 - [ ] Deployment to Kubernetes
 
 ## :book: References
+
+Special thanks to:
 
 - TBD
