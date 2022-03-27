@@ -22,7 +22,7 @@ endif
 	go test -race -cover $(TEST_ARGS) ./...
 
 check.coverage:
-	go tool cover -func $(COVER_PROFILE_FILE) | grep total | awk '{print substr($$3, 1, length($$3)-1)}' | awk '{if ($$0 <= 90) print "coverage too low: "$$0  ; else exit 0 }'
+	go tool cover -func $(COVER_PROFILE_FILE) | grep total | awk '{print substr($$3, 1, length($$3)-1)}' | awk '{if ($$0 <= 90) exit 1 ; else exit 0 }'
 
 test.complete: lint cc test
 
