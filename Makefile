@@ -15,8 +15,10 @@ cc:
 		gocyclo -over 10 -ignore "pb" $${dir} ; \
 	done
 	
-test: lint cc
+test:
 	go test -race -cover ./...
+
+test.complete: lint cc test
 
 run:
 	go run main.go
