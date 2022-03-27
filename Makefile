@@ -12,7 +12,7 @@ lint:
 
 cc:
 	for dir in $(DIRS) ; do \
-		gocyclo -over 10 -ignore "pb" $${dir} ; \
+		gocyclo -over 10 -ignore "pb|vendor/|mock/" $${dir} ; \
 	done
 	
 test:
