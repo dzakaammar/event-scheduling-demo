@@ -2,6 +2,7 @@ version: "3.9"
 services:
   postgres:
     image: postgres:12-alpine
+    profiles: ['all', 'default']
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=secret
@@ -12,6 +13,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    profiles: ['all', 'default']
     ports:
       - "8000:8000"
     environment:
@@ -25,12 +27,14 @@ services:
   #  optional
   jaeger-all-in-one:
     image: jaegertracing/all-in-one:latest
+    profiles: ['all']
     ports:
       - "16686:16686"
       - "14268"
       - "14250"
   otel-collector:
     image: otel/opentelemetry-collector-contrib-dev:latest
+    profiles: ['all']
     command: ["--config=/etc/otel_local.yaml", "${OTELCOL_ARGS}"]
     volumes:
       - ./build/otel_local.yaml:/etc/otel_local.yaml
