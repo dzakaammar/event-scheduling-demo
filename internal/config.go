@@ -3,8 +3,10 @@ package internal
 import "github.com/spf13/viper"
 
 type Config struct {
-	DbSource    string `mapstructure:"DB_SOURCE"`
-	GRPCAddress string `mapstructure:"GRPC_ADDRESS"`
+	DbSource     string `mapstructure:"DB_SOURCE"`
+	GRPCAddress  string `mapstructure:"GRPC_ADDRESS"`
+	JaegerURL    string `mapstructure:"JAEGER_URL"`
+	OTLPEndpoint string `mapstructure:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 }
 
 func LoadConfig(path string) (Config, error) {

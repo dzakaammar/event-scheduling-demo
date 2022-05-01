@@ -6,6 +6,7 @@ import (
 	"net"
 
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -15,7 +16,9 @@ type GRPCServer struct {
 }
 
 func NewGRPCServer(endpoint v1.EventServiceServer) *GRPCServer {
-	srv := grpc.NewServer()
+	srv := grpc.NewServer(
+		grpc.UnaryInterceptor(otelgrpc.UnaryServerInterceptor()),
+	)
 	v1.RegisterEventServiceServer(srv, endpoint)
 	reflection.Register(srv)
 
