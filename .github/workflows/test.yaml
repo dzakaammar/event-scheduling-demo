@@ -29,9 +29,9 @@ jobs:
       - name: Cyclomatic Complexity Checker
         run: make cc
 
-      # disable for now, need some research to get the total coverage
-      # - name: Test
-      #   run: make test COVER_PROFILE_FILE=cover.out
+      - name: Test
+        run: make test COVER_PROFILE_FILE=cover.out
 
-      - name: Coverage Check
-        run: make check.coverage COVER_PROFILE_FILE=cover.out
+      # disable for now, need some research to get the total coverage
+      # - name: Coverage Check
+      #   run: make check.coverage COVER_PROFILE_FILE=cover.out
