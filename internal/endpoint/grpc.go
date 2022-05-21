@@ -10,10 +10,12 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type GRPCEndpoint struct {
 	svc internal.EventService
+	v1.UnimplementedEventServiceServer
 }
 
 func NewGRPCEndpoint(svc internal.EventService) *GRPCEndpoint {
@@ -39,7 +41,7 @@ func (g *GRPCEndpoint) CreateEvent(ctx context.Context, req *v1.CreateEventReque
 	}, nil
 }
 
-func (g *GRPCEndpoint) DeleteEventByID(ctx context.Context, req *v1.DeleteEventByIDRequest) (*v1.DeleteEventByIDResponse, error) {
+func (g *GRPCEndpoint) DeleteEventByID(ctx context.Context, req *v1.DeleteEventByIDRequest) (*emptypb.Empty, error) {
 	delReq, err := parseDeleteEventByIDtRequest(ctx, req)
 	if err != nil {
 		log.Error(err)
@@ -51,10 +53,10 @@ func (g *GRPCEndpoint) DeleteEventByID(ctx context.Context, req *v1.DeleteEventB
 		log.Error(err)
 		return nil, mapErrToStatusCode(err)
 	}
-	return &v1.DeleteEventByIDResponse{}, nil
+	return &emptypb.Empty{}, nil
 }
 
-func (g *GRPCEndpoint) UpdateEvent(ctx context.Context, req *v1.UpdateEventRequest) (*v1.UpdateEventResponse, error) {
+func (g *GRPCEndpoint) UpdateEvent(ctx context.Context, req *v1.UpdateEventRequest) (*emptypb.Empty, error) {
 	updateReq, err := parseUpdateEventByIDRequest(ctx, req)
 	if err != nil {
 		log.Error(err)
@@ -66,7 +68,7 @@ func (g *GRPCEndpoint) UpdateEvent(ctx context.Context, req *v1.UpdateEventReque
 		log.Error(err)
 		return nil, mapErrToStatusCode(err)
 	}
-	return &v1.UpdateEventResponse{}, nil
+	return &emptypb.Empty{}, nil
 }
 
 func (g *GRPCEndpoint) FindEventByID(ctx context.Context, req *v1.FindEventByIDRequest) (*v1.FindEventByIDResponse, error) {
@@ -84,6 +86,15 @@ func (g *GRPCEndpoint) FindEventByID(ctx context.Context, req *v1.FindEventByIDR
 	return &v1.FindEventByIDResponse{
 		Event: res,
 	}, nil
+}
+
+func (g *GRPCEndpoint) Check(ctx context.Context, in *v1.HealthCheckRequest) (*v1.HealthCheckResponse, error) {
+	return &v1.HealthCheckResponse{Status: v1.HealthCheckResponse_SERVING}, nil
+}
+
+func (g *GRPCEndpoint) Watch(in *v1.HealthCheckRequest, _ v1.EventService_WatchServer) error {
+	// Example of how to register both methods but only implement the Check method.
+	return status.Error(codes.Unimplemented, "unimplemented")
 }
 
 func extractAuthorization(ctx context.Context) string {

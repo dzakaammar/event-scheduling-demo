@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,9 +24,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type EventServiceClient interface {
 	CreateEvent(ctx context.Context, in *CreateEventRequest, opts ...grpc.CallOption) (*CreateEventResponse, error)
-	UpdateEvent(ctx context.Context, in *UpdateEventRequest, opts ...grpc.CallOption) (*UpdateEventResponse, error)
-	DeleteEventByID(ctx context.Context, in *DeleteEventByIDRequest, opts ...grpc.CallOption) (*DeleteEventByIDResponse, error)
+	UpdateEvent(ctx context.Context, in *UpdateEventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	DeleteEventByID(ctx context.Context, in *DeleteEventByIDRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
 	FindEventByID(ctx context.Context, in *FindEventByIDRequest, opts ...grpc.CallOption) (*FindEventByIDResponse, error)
+	Check(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
+	Watch(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (EventService_WatchClient, error)
 }
 
 type eventServiceClient struct {
@@ -45,8 +48,8 @@ func (c *eventServiceClient) CreateEvent(ctx context.Context, in *CreateEventReq
 	return out, nil
 }
 
-func (c *eventServiceClient) UpdateEvent(ctx context.Context, in *UpdateEventRequest, opts ...grpc.CallOption) (*UpdateEventResponse, error) {
-	out := new(UpdateEventResponse)
+func (c *eventServiceClient) UpdateEvent(ctx context.Context, in *UpdateEventRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/proto.v1.EventService/UpdateEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -54,8 +57,8 @@ func (c *eventServiceClient) UpdateEvent(ctx context.Context, in *UpdateEventReq
 	return out, nil
 }
 
-func (c *eventServiceClient) DeleteEventByID(ctx context.Context, in *DeleteEventByIDRequest, opts ...grpc.CallOption) (*DeleteEventByIDResponse, error) {
-	out := new(DeleteEventByIDResponse)
+func (c *eventServiceClient) DeleteEventByID(ctx context.Context, in *DeleteEventByIDRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
 	err := c.cc.Invoke(ctx, "/proto.v1.EventService/DeleteEventByID", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -72,32 +75,83 @@ func (c *eventServiceClient) FindEventByID(ctx context.Context, in *FindEventByI
 	return out, nil
 }
 
+func (c *eventServiceClient) Check(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error) {
+	out := new(HealthCheckResponse)
+	err := c.cc.Invoke(ctx, "/proto.v1.EventService/Check", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *eventServiceClient) Watch(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (EventService_WatchClient, error) {
+	stream, err := c.cc.NewStream(ctx, &EventService_ServiceDesc.Streams[0], "/proto.v1.EventService/Watch", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &eventServiceWatchClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type EventService_WatchClient interface {
+	Recv() (*HealthCheckResponse, error)
+	grpc.ClientStream
+}
+
+type eventServiceWatchClient struct {
+	grpc.ClientStream
+}
+
+func (x *eventServiceWatchClient) Recv() (*HealthCheckResponse, error) {
+	m := new(HealthCheckResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // EventServiceServer is the server API for EventService service.
-// All implementations should embed UnimplementedEventServiceServer
+// All implementations must embed UnimplementedEventServiceServer
 // for forward compatibility
 type EventServiceServer interface {
 	CreateEvent(context.Context, *CreateEventRequest) (*CreateEventResponse, error)
-	UpdateEvent(context.Context, *UpdateEventRequest) (*UpdateEventResponse, error)
-	DeleteEventByID(context.Context, *DeleteEventByIDRequest) (*DeleteEventByIDResponse, error)
+	UpdateEvent(context.Context, *UpdateEventRequest) (*emptypb.Empty, error)
+	DeleteEventByID(context.Context, *DeleteEventByIDRequest) (*emptypb.Empty, error)
 	FindEventByID(context.Context, *FindEventByIDRequest) (*FindEventByIDResponse, error)
+	Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
+	Watch(*HealthCheckRequest, EventService_WatchServer) error
+	mustEmbedUnimplementedEventServiceServer()
 }
 
-// UnimplementedEventServiceServer should be embedded to have forward compatible implementations.
+// UnimplementedEventServiceServer must be embedded to have forward compatible implementations.
 type UnimplementedEventServiceServer struct {
 }
 
 func (UnimplementedEventServiceServer) CreateEvent(context.Context, *CreateEventRequest) (*CreateEventResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateEvent not implemented")
 }
-func (UnimplementedEventServiceServer) UpdateEvent(context.Context, *UpdateEventRequest) (*UpdateEventResponse, error) {
+func (UnimplementedEventServiceServer) UpdateEvent(context.Context, *UpdateEventRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateEvent not implemented")
 }
-func (UnimplementedEventServiceServer) DeleteEventByID(context.Context, *DeleteEventByIDRequest) (*DeleteEventByIDResponse, error) {
+func (UnimplementedEventServiceServer) DeleteEventByID(context.Context, *DeleteEventByIDRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteEventByID not implemented")
 }
 func (UnimplementedEventServiceServer) FindEventByID(context.Context, *FindEventByIDRequest) (*FindEventByIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindEventByID not implemented")
 }
+func (UnimplementedEventServiceServer) Check(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Check not implemented")
+}
+func (UnimplementedEventServiceServer) Watch(*HealthCheckRequest, EventService_WatchServer) error {
+	return status.Errorf(codes.Unimplemented, "method Watch not implemented")
+}
+func (UnimplementedEventServiceServer) mustEmbedUnimplementedEventServiceServer() {}
 
 // UnsafeEventServiceServer may be embedded to opt out of forward compatibility for this service.
 // Use of this interface is not recommended, as added methods to EventServiceServer will
@@ -182,6 +236,45 @@ func _EventService_FindEventByID_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _EventService_Check_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HealthCheckRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(EventServiceServer).Check(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.v1.EventService/Check",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(EventServiceServer).Check(ctx, req.(*HealthCheckRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _EventService_Watch_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(HealthCheckRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(EventServiceServer).Watch(m, &eventServiceWatchServer{stream})
+}
+
+type EventService_WatchServer interface {
+	Send(*HealthCheckResponse) error
+	grpc.ServerStream
+}
+
+type eventServiceWatchServer struct {
+	grpc.ServerStream
+}
+
+func (x *eventServiceWatchServer) Send(m *HealthCheckResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // EventService_ServiceDesc is the grpc.ServiceDesc for EventService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -205,7 +298,17 @@ var EventService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "FindEventByID",
 			Handler:    _EventService_FindEventByID_Handler,
 		},
+		{
+			MethodName: "Check",
+			Handler:    _EventService_Check_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "Watch",
+			Handler:       _EventService_Watch_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "proto/v1/service.proto",
 }

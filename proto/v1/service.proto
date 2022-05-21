@@ -2,42 +2,217 @@ syntax = "proto3";
 
 package proto.v1;
 
-import "proto/v1/model.proto";
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1;v1";
 
-message CreateEventRequest {
-    Event event = 1;
+// Event
+message Event {
+    // id is event's ID
+    string id = 1;
+
+    // title is event's title
+    string title = 2;
+
+    // description is event's description
+    string description = 3;
+
+    // attendees is the attendees of the event, multiple of user id
+    repeated string attendees = 4;
+
+    // Schedules is schedules of the event. An event can has multiple schedule
+    repeated Schedule schedule = 5;
+
+    // created_at is creation time of an event 
+    string created_at = 6;
+
+    // created_by is creator's user id
+    string created_by = 7;
+    
+    // last_updated_at is last update of the data
+    string last_updated_at = 8;
+    
+    // timezone is the timezone of an event, i.e: 'Asia/Jakarta'
+    string timezone = 9;
 }
 
+// RecurringType
+enum RecurringType {
+    // NONE is no recurring type
+    NONE = 0;
+    // DAILY is daily
+    DAILY = 1;
+    // EVERY_WEEK is every week
+    EVERY_WEEK = 2;
+}
+
+// Schedule
+message Schedule {
+    // id is schedule's ID
+    string id = 1;
+    // start_time is the start time of schedule
+    string start_time = 2;
+    // end_time is the end time of schedule
+    string end_time = 3;
+    // recurring_type is Recurring type of the schedule
+    RecurringType recurring_type = 4;
+    // is_full_day is a flag to mark a full-day schedule or not
+    bool is_full_day = 5;
+}
+
+// HealthCheckRequest
+message HealthCheckRequest {
+    string service = 1;
+}
+
+// CreateEventRequest
+message CreateEventRequest {
+    Event event = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+// CreateEventResponse
 message CreateEventResponse {
     string id = 1;
 }
 
+// UpdateEventRequest
 message UpdateEventRequest {
-    string id = 1;
-    Event event = 2;
+    // id is event's ID
+    string id = 1 [(google.api.field_behavior) = REQUIRED];
+    // event is the event data that you want to update
+    Event event = 2 [(google.api.field_behavior) = REQUIRED];
 }
 
-message UpdateEventResponse {}
-
+// DeleteEventByIDRequest
 message DeleteEventByIDRequest {
-    string id = 1;
+    // id is event's ID
+    string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
-message DeleteEventByIDResponse {}
-
+// FindEventByIDRequest
 message FindEventByIDRequest {
-    string id = 1;
+    // id is event's ID
+    string id = 1 [(google.api.field_behavior) = REQUIRED];
 }
 
+// FindEventByIDResponse
 message FindEventByIDResponse {
+    // Event is an event
     Event event = 1;
 }
 
+// HealthCheckResponse
+message HealthCheckResponse {
+    // ServingStatus
+    enum ServingStatus {
+        UNKNOWN = 0;
+        SERVING = 1;
+        NOT_SERVING = 2;
+        SERVICE_UNKNOWN = 3;
+    }
+    ServingStatus status = 1;
+}
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Event Scheduling Demo";
+      version: "1.0";
+      contact: {
+        name: "Dzaka Ammar Ibrahim";
+        url: "https://github.com/dzakaammar";
+        email: "dzakaammar@gmail.com";
+      };
+      license: {
+        name: "BSD 3-Clause License";
+        url: "https://github.com/grpc-ecosystem/grpc-gateway/blob/master/LICENSE.txt";
+      };
+    };
+    schemes: HTTP;
+    schemes: HTTPS;
+    consumes: "application/json";
+    produces: "application/json";
+    security_definitions: {
+      security: {
+        key: "ApiKeyAuth";
+        value: {
+          type: TYPE_API_KEY;
+          in: IN_HEADER;
+          name: "Authorization";
+        }
+      }
+    }
+    responses: {
+      key: "403";
+      value: {
+        description: "Returned when the user does not have permission to access the resource.";
+      }
+    }
+    responses: {
+      key: "404";
+      value: {
+        description: "Returned when the resource does not exist.";
+        schema: {
+          json_schema: {
+            type: STRING;
+          }
+        }
+      }
+    }
+  };
+
+// EventService
 service EventService {
-    rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {}
-    rpc UpdateEvent (UpdateEventRequest) returns (UpdateEventResponse) {}
-    rpc DeleteEventByID (DeleteEventByIDRequest) returns (DeleteEventByIDResponse) {}
-    rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {}
+    rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
+        option (google.api.http) = {
+            post: "/api/v1/events",
+            body: "event"
+        };
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          security: {
+            security_requirement: {
+              key: "ApiKeyAuth";
+              value: {}
+            }
+          }
+        };
+    }
+    rpc UpdateEvent (UpdateEventRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            put: "/api/v1/events/{id}",
+            body: "event"
+        };
+
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          security: {
+            security_requirement: {
+              key: "ApiKeyAuth";
+              value: {}
+            }
+          }
+        };
+    }
+    rpc DeleteEventByID (DeleteEventByIDRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/api/v1/events/{id}"
+        };
+
+        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+          security: {
+            security_requirement: {
+              key: "ApiKeyAuth";
+              value: {}
+            }
+          }
+        };
+    }
+    rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {
+        option (google.api.http) = {
+            get: "/api/v1/events/{id}"
+        };
+    }
+    rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {};
+    rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse) {};
 }

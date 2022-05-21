@@ -1,0 +1,265 @@
+swagger: "2.0"
+info:
+  title: Event Scheduling Demo
+  version: "1.0"
+  contact:
+    name: Dzaka Ammar Ibrahim
+    url: https://github.com/dzakaammar
+    email: dzakaammar@gmail.com
+  license:
+    name: BSD 3-Clause License
+    url: https://github.com/grpc-ecosystem/grpc-gateway/blob/master/LICENSE.txt
+tags:
+- name: EventService
+schemes:
+- http
+- https
+consumes:
+- application/json
+produces:
+- application/json
+paths:
+  /api/v1/events:
+    post:
+      operationId: EventService_CreateEvent
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1CreateEventResponse'
+        "403":
+          description: Returned when the user does not have permission to access the
+            resource.
+          schema: {}
+        "404":
+          description: Returned when the resource does not exist.
+          schema:
+            type: string
+            format: string
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+      - name: event
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1Event'
+      tags:
+      - EventService
+      security:
+      - ApiKeyAuth: []
+  /api/v1/events/{id}:
+    get:
+      operationId: EventService_FindEventByID
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v1FindEventByIDResponse'
+        "403":
+          description: Returned when the user does not have permission to access the
+            resource.
+          schema: {}
+        "404":
+          description: Returned when the resource does not exist.
+          schema:
+            type: string
+            format: string
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+      - name: id
+        description: id is event's ID
+        in: path
+        required: true
+        type: string
+      tags:
+      - EventService
+    delete:
+      operationId: EventService_DeleteEventByID
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            properties: {}
+        "403":
+          description: Returned when the user does not have permission to access the
+            resource.
+          schema: {}
+        "404":
+          description: Returned when the resource does not exist.
+          schema:
+            type: string
+            format: string
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+      - name: id
+        description: id is event's ID
+        in: path
+        required: true
+        type: string
+      tags:
+      - EventService
+      security:
+      - ApiKeyAuth: []
+    put:
+      operationId: EventService_UpdateEvent
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            properties: {}
+        "403":
+          description: Returned when the user does not have permission to access the
+            resource.
+          schema: {}
+        "404":
+          description: Returned when the resource does not exist.
+          schema:
+            type: string
+            format: string
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+      - name: id
+        description: id is event's ID
+        in: path
+        required: true
+        type: string
+      - name: event
+        description: event is the event data that you want to update
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/v1Event'
+      tags:
+      - EventService
+      security:
+      - ApiKeyAuth: []
+definitions:
+  HealthCheckResponseServingStatus:
+    type: string
+    enum:
+    - UNKNOWN
+    - SERVING
+    - NOT_SERVING
+    - SERVICE_UNKNOWN
+    default: UNKNOWN
+    title: ServingStatus
+  protobufAny:
+    type: object
+    properties:
+      '@type':
+        type: string
+    additionalProperties: {}
+  rpcStatus:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          $ref: '#/definitions/protobufAny'
+  v1CreateEventResponse:
+    type: object
+    properties:
+      id:
+        type: string
+    title: CreateEventResponse
+  v1Event:
+    type: object
+    properties:
+      id:
+        type: string
+        title: id is event's ID
+      title:
+        type: string
+        title: title is event's title
+      description:
+        type: string
+        title: description is event's description
+      attendees:
+        type: array
+        items:
+          type: string
+        title: attendees is the attendees of the event, multiple of user id
+      schedule:
+        type: array
+        items:
+          $ref: '#/definitions/v1Schedule'
+        title: Schedules is schedules of the event. An event can has multiple schedule
+      createdAt:
+        type: string
+        title: created_at is creation time of an event
+      createdBy:
+        type: string
+        title: created_by is creator's user id
+      lastUpdatedAt:
+        type: string
+        title: last_updated_at is last update of the data
+      timezone:
+        type: string
+        title: 'timezone is the timezone of an event, i.e: ''Asia/Jakarta'''
+    title: Event
+  v1FindEventByIDResponse:
+    type: object
+    properties:
+      event:
+        $ref: '#/definitions/v1Event'
+        title: Event is an event
+    title: FindEventByIDResponse
+  v1HealthCheckResponse:
+    type: object
+    properties:
+      status:
+        $ref: '#/definitions/HealthCheckResponseServingStatus'
+    title: HealthCheckResponse
+  v1RecurringType:
+    type: string
+    enum:
+    - NONE
+    - DAILY
+    - EVERY_WEEK
+    default: NONE
+    description: |-
+      - NONE: NONE is no recurring type
+       - DAILY: DAILY is daily
+       - EVERY_WEEK: EVERY_WEEK is every week
+    title: RecurringType
+  v1Schedule:
+    type: object
+    properties:
+      id:
+        type: string
+        title: id is schedule's ID
+      startTime:
+        type: string
+        title: start_time is the start time of schedule
+      endTime:
+        type: string
+        title: end_time is the end time of schedule
+      recurringType:
+        $ref: '#/definitions/v1RecurringType'
+        title: recurring_type is Recurring type of the schedule
+      isFullDay:
+        type: boolean
+        title: is_full_day is a flag to mark a full-day schedule or not
+    title: Schedule
+securityDefinitions:
+  ApiKeyAuth:
+    type: apiKey
+    name: Authorization
+    in: header

@@ -23,6 +23,17 @@ services:
       - postgres
     entrypoint: [ "/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh" ]
     command: [ "/app/main" ]
+  grpc_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles: ['all', 'default']
+    ports:
+      - "8001:8001"
+    depends_on:
+      - grpc_app
+    entrypoint: [ "/app/wait-for.sh", "grpc_app:8000", "--" ]
+    command: [ "/app/main", "grpc-gateway", "--target", "grpc_app:8000" ]
   
   #  optional
   jaeger-all-in-one:

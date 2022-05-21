@@ -7,4 +7,13 @@ plugins:
     out: gen/go
     opt:
       - paths=source_relative
-      - require_unimplemented_servers=false
+  - name: grpc-gateway
+    out: gen/go
+    opt:
+      - paths=source_relative
+  - name: openapiv2
+    out: internal/server/gen
+    opt:
+      - allow_merge=true
+      - merge_file_name=openapi
+      - output_format=yaml
