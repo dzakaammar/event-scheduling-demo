@@ -1,10 +1,13 @@
 package cmd
 
 import (
+	"time"
+
 	"github.com/dzakaammar/event-scheduling-example/internal"
 	"github.com/dzakaammar/event-scheduling-example/internal/server"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
+	"golang.org/x/net/context"
 )
 
 var (
@@ -30,11 +33,18 @@ func runGRPCGateway(cmd *cobra.Command, args []string) error {
 		grpcServerTarget = &cfg.GRPCAddress
 	}
 
-	grpGatewayServer, err := server.NewGRPCGatewayServer(*grpcServerTarget)
+	grpcGatewayServer, err := server.NewGRPCGatewayServer(*grpcServerTarget)
 	if err != nil {
 		panic(err)
 	}
 
-	// TODO: handle graceful shutdown
-	return grpGatewayServer.Start(cfg.GRPCGatewayAddress)
+	waitForSignal := gracefulShutdown(func() error {
+		return grpcGatewayServer.Start(cfg.GRPCGatewayAddress)
+	})
+
+	waitForSignal()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return grpcGatewayServer.Stop(ctx)
 }

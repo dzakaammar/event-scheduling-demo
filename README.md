@@ -13,7 +13,7 @@ Others:
 - [x] Auto-migrate DB
 - [x] Dockerfile and docker compose
 - [x] Unit testing pipeline (lint, cyclomatic complexity, coverage, and go unit test)
-- [ ] grpc-gateway and OpenAPI
+- [x] grpc-gateway and OpenAPI
 - [ ] Observability and Logging
 - [ ] Integration testing pipeline
 - [ ] Deployment to Kubernetes
