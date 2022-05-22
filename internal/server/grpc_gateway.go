@@ -17,7 +17,7 @@ var (
 	//go:embed swagger
 	swagger embed.FS
 
-	//go:embed gen/openapi.swagger.yaml
+	//go:embed gen/v1/openapiv2.swagger.yaml
 	openAPIFile []byte
 )
 
@@ -43,7 +43,7 @@ func NewGRPCGatewayServer(grpcTarget string) (*GRPCGatewayServer, error) {
 
 	r.Mount("/api", gatewayHandler)
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(swagger))))
-	r.Get("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/openapiv2.yaml", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/x-yaml")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write(openAPIFile)
