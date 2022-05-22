@@ -12,6 +12,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func TestNewGRPCEndpoint(t *testing.T) {
@@ -193,7 +194,7 @@ func TestGRPCEndpoint_DeleteEventByID(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *v1.DeleteEventByIDResponse
+		want    *emptypb.Empty
 		wantErr bool
 	}{
 		{
@@ -216,7 +217,7 @@ func TestGRPCEndpoint_DeleteEventByID(t *testing.T) {
 					Id: "test123",
 				},
 			},
-			want: &v1.DeleteEventByIDResponse{},
+			want: &emptypb.Empty{},
 		},
 		{
 			name: "Not OK - failed from service",
@@ -269,7 +270,7 @@ func TestGRPCEndpoint_UpdateEvent(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *v1.UpdateEventResponse
+		want    *emptypb.Empty
 		wantErr bool
 	}{
 		{
@@ -311,7 +312,7 @@ func TestGRPCEndpoint_UpdateEvent(t *testing.T) {
 					},
 				},
 			},
-			want: &v1.UpdateEventResponse{},
+			want: &emptypb.Empty{},
 		},
 		{
 			name: "Not OK - error from service",

@@ -57,6 +57,7 @@ func runGRPCServer(_ *cobra.Command, _ []string) error {
 	grpcEndpoint := endpoint.NewGRPCEndpoint(svc)
 	grpcServer := server.NewGRPCServer(grpcEndpoint)
 
+	// TODO: handle graceful shutdown
 	if err := grpcServer.Start(cfg.GRPCAddress); err != nil {
 		return err
 	}

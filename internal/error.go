@@ -20,7 +20,7 @@ func (e *Error) Error() string {
 	if e.err == nil {
 		return e.msg
 	}
-	return fmt.Sprintf("%s: %s", e.msg, e.err.Error())
+	return fmt.Sprintf("%s: %s", e.err.Error(), e.msg)
 }
 
 func WrapErr(err error, msg string) *Error {
