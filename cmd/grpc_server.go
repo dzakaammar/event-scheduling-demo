@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"time"
 
 	"github.com/dzakaammar/event-scheduling-example/internal"
 	"github.com/dzakaammar/event-scheduling-example/internal/endpoint"
@@ -57,12 +58,15 @@ func runGRPCServer(_ *cobra.Command, _ []string) error {
 	grpcEndpoint := endpoint.NewGRPCEndpoint(svc)
 	grpcServer := server.NewGRPCServer(grpcEndpoint)
 
-	// TODO: handle graceful shutdown
-	if err := grpcServer.Start(cfg.GRPCAddress); err != nil {
-		return err
-	}
+	waitForSignal := gracefulShutdown(func() error {
+		return grpcServer.Start(cfg.GRPCAddress)
+	})
 
-	return nil
+	waitForSignal()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return grpcServer.Stop(ctx)
 }
 
 func tracerProvider(agentAddr string) (*tracesdk.TracerProvider, error) {
