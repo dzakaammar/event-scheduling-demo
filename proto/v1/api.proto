@@ -106,14 +106,14 @@ message FindEventByIDResponse {
 
 // HealthCheckResponse
 message HealthCheckResponse {
-    // ServingStatus
-    enum ServingStatus {
-        UNKNOWN = 0;
-        SERVING = 1;
-        NOT_SERVING = 2;
-        SERVICE_UNKNOWN = 3;
-    }
-    ServingStatus status = 1;
+  // ServingStatus
+  enum ServingStatus {
+      UNKNOWN = 0;
+      SERVING = 1;
+      NOT_SERVING = 2;
+      SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
 }
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
@@ -144,75 +144,58 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
         }
       }
     }
-    responses: {
-      key: "403";
-      value: {
-        description: "Returned when the user does not have permission to access the resource.";
-      }
-    }
-    responses: {
-      key: "404";
-      value: {
-        description: "Returned when the resource does not exist.";
-        schema: {
-          json_schema: {
-            type: STRING;
-          }
-        }
-      }
-    }
   };
 
-// EventService
-service EventService {
-    rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
-        option (google.api.http) = {
-            post: "/api/v1/events",
-            body: "event"
-        };
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-          security: {
-            security_requirement: {
-              key: "ApiKeyAuth";
-              value: {}
-            }
+// API
+service API {
+  rpc CreateEvent (CreateEventRequest) returns (CreateEventResponse) {
+      option (google.api.http) = {
+          post: "/api/v1/events",
+          body: "event"
+      };
+      option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        security: {
+          security_requirement: {
+            key: "ApiKeyAuth";
+            value: {}
           }
-        };
-    }
-    rpc UpdateEvent (UpdateEventRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            put: "/api/v1/events/{id}",
-            body: "event"
-        };
+        }
+      };
+  }
+  rpc UpdateEvent (UpdateEventRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+          put: "/api/v1/events/{id}",
+          body: "event"
+      };
 
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-          security: {
-            security_requirement: {
-              key: "ApiKeyAuth";
-              value: {}
-            }
+      option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        security: {
+          security_requirement: {
+            key: "ApiKeyAuth";
+            value: {}
           }
-        };
-    }
-    rpc DeleteEventByID (DeleteEventByIDRequest) returns (google.protobuf.Empty) {
-        option (google.api.http) = {
-            delete: "/api/v1/events/{id}"
-        };
+        }
+      };
+  }
+  rpc DeleteEventByID (DeleteEventByIDRequest) returns (google.protobuf.Empty) {
+      option (google.api.http) = {
+          delete: "/api/v1/events/{id}"
+      };
 
-        option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-          security: {
-            security_requirement: {
-              key: "ApiKeyAuth";
-              value: {}
-            }
+      option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+        security: {
+          security_requirement: {
+            key: "ApiKeyAuth";
+            value: {}
           }
-        };
-    }
-    rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {
-        option (google.api.http) = {
-            get: "/api/v1/events/{id}"
-        };
-    }
-    rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {};
-    rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse) {};
+        }
+      };
+  }
+  rpc FindEventByID (FindEventByIDRequest) returns (FindEventByIDResponse) {
+      option (google.api.http) = {
+          get: "/api/v1/events/{id}"
+      };
+  }
+  rpc Check(HealthCheckRequest) returns (HealthCheckResponse) {};
+  rpc Watch(HealthCheckRequest) returns (stream HealthCheckResponse) {};
 }

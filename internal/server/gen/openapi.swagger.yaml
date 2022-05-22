@@ -10,7 +10,7 @@ info:
     name: BSD 3-Clause License
     url: https://github.com/grpc-ecosystem/grpc-gateway/blob/master/LICENSE.txt
 tags:
-- name: EventService
+- name: API
 schemes:
 - http
 - https
@@ -21,21 +21,12 @@ produces:
 paths:
   /api/v1/events:
     post:
-      operationId: EventService_CreateEvent
+      operationId: API_CreateEvent
       responses:
         "200":
           description: A successful response.
           schema:
             $ref: '#/definitions/v1CreateEventResponse'
-        "403":
-          description: Returned when the user does not have permission to access the
-            resource.
-          schema: {}
-        "404":
-          description: Returned when the resource does not exist.
-          schema:
-            type: string
-            format: string
         default:
           description: An unexpected error response.
           schema:
@@ -47,26 +38,17 @@ paths:
         schema:
           $ref: '#/definitions/v1Event'
       tags:
-      - EventService
+      - API
       security:
       - ApiKeyAuth: []
   /api/v1/events/{id}:
     get:
-      operationId: EventService_FindEventByID
+      operationId: API_FindEventByID
       responses:
         "200":
           description: A successful response.
           schema:
             $ref: '#/definitions/v1FindEventByIDResponse'
-        "403":
-          description: Returned when the user does not have permission to access the
-            resource.
-          schema: {}
-        "404":
-          description: Returned when the resource does not exist.
-          schema:
-            type: string
-            format: string
         default:
           description: An unexpected error response.
           schema:
@@ -78,23 +60,14 @@ paths:
         required: true
         type: string
       tags:
-      - EventService
+      - API
     delete:
-      operationId: EventService_DeleteEventByID
+      operationId: API_DeleteEventByID
       responses:
         "200":
           description: A successful response.
           schema:
             properties: {}
-        "403":
-          description: Returned when the user does not have permission to access the
-            resource.
-          schema: {}
-        "404":
-          description: Returned when the resource does not exist.
-          schema:
-            type: string
-            format: string
         default:
           description: An unexpected error response.
           schema:
@@ -106,25 +79,16 @@ paths:
         required: true
         type: string
       tags:
-      - EventService
+      - API
       security:
       - ApiKeyAuth: []
     put:
-      operationId: EventService_UpdateEvent
+      operationId: API_UpdateEvent
       responses:
         "200":
           description: A successful response.
           schema:
             properties: {}
-        "403":
-          description: Returned when the user does not have permission to access the
-            resource.
-          schema: {}
-        "404":
-          description: Returned when the resource does not exist.
-          schema:
-            type: string
-            format: string
         default:
           description: An unexpected error response.
           schema:
@@ -142,7 +106,7 @@ paths:
         schema:
           $ref: '#/definitions/v1Event'
       tags:
-      - EventService
+      - API
       security:
       - ApiKeyAuth: []
 definitions:

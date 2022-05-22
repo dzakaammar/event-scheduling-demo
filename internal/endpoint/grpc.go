@@ -15,7 +15,7 @@ import (
 
 type GRPCEndpoint struct {
 	svc internal.EventService
-	v1.UnimplementedEventServiceServer
+	v1.UnimplementedAPIServer
 }
 
 func NewGRPCEndpoint(svc internal.EventService) *GRPCEndpoint {
@@ -92,7 +92,7 @@ func (g *GRPCEndpoint) Check(ctx context.Context, in *v1.HealthCheckRequest) (*v
 	return &v1.HealthCheckResponse{Status: v1.HealthCheckResponse_SERVING}, nil
 }
 
-func (g *GRPCEndpoint) Watch(in *v1.HealthCheckRequest, _ v1.EventService_WatchServer) error {
+func (g *GRPCEndpoint) Watch(in *v1.HealthCheckRequest, _ v1.API_WatchServer) error {
 	// Example of how to register both methods but only implement the Check method.
 	return status.Error(codes.Unimplemented, "unimplemented")
 }

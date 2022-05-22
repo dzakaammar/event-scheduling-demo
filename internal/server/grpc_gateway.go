@@ -26,14 +26,7 @@ type GRPCGatewayServer struct {
 }
 
 func NewGRPCGatewayServer(grpcTarget string) (*GRPCGatewayServer, error) {
-	m := runtime.NewServeMux()
-
-	opts := []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithBlock(),
-	}
-
-	err := v1.RegisterEventServiceHandlerFromEndpoint(context.Background(), m, grpcTarget, opts)
+	gatewayHandler, err := grpcGatewayHandler(grpcTarget)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +41,7 @@ func NewGRPCGatewayServer(grpcTarget string) (*GRPCGatewayServer, error) {
 		MaxAge:           300,
 	}))
 
-	r.Mount("/api", m)
+	r.Mount("/api", gatewayHandler)
 	r.Handle("/static/*", http.StripPrefix("/static/", http.FileServer(http.FS(swagger))))
 	r.Get("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/x-yaml")
@@ -70,4 +63,20 @@ func (g *GRPCGatewayServer) Start(address string) error {
 
 func (g *GRPCGatewayServer) Stop(ctx context.Context) error {
 	return g.srv.Shutdown(ctx)
+}
+
+func grpcGatewayHandler(grpcServerTarget string) (http.Handler, error) {
+	handler := runtime.NewServeMux()
+
+	opts := []grpc.DialOption{
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	}
+
+	err := v1.RegisterAPIHandlerFromEndpoint(context.Background(), handler, grpcServerTarget, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	return handler, nil
 }

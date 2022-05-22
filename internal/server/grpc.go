@@ -20,7 +20,7 @@ type GRPCServer struct {
 	srv *grpc.Server
 }
 
-func NewGRPCServer(endpoint v1.EventServiceServer) *GRPCServer {
+func NewGRPCServer(endpoint v1.APIServer) *GRPCServer {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.Level = logrus.ErrorLevel
@@ -50,7 +50,7 @@ func NewGRPCServer(endpoint v1.EventServiceServer) *GRPCServer {
 			grpc_logrus.UnaryServerInterceptor(logrusEntry, opts...),
 		),
 	)
-	v1.RegisterEventServiceServer(srv, endpoint)
+	v1.RegisterAPIServer(srv, endpoint)
 	reflection.Register(srv)
 
 	return &GRPCServer{
