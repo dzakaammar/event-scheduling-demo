@@ -1,7 +1,9 @@
-package internal
+package core
 
 import (
 	"context"
+
+	"github.com/dzakaammar/event-scheduling-example/internal"
 )
 
 type CreateEventRequest struct {
@@ -11,11 +13,11 @@ type CreateEventRequest struct {
 
 func (c *CreateEventRequest) Validate() error {
 	if c.ActorID == "" {
-		return WrapErr(ErrValidationFailed, "invalid actor id")
+		return internal.WrapErr(internal.ErrValidationFailed, "invalid actor id")
 	}
 
 	if c.Event == nil {
-		return WrapErr(ErrValidationFailed, "invalid event")
+		return internal.WrapErr(internal.ErrValidationFailed, "invalid event")
 	}
 
 	return c.Event.Validate()
@@ -28,11 +30,11 @@ type DeleteEventByIDRequest struct {
 
 func (d *DeleteEventByIDRequest) Validate() error {
 	if d.ActorID == "" {
-		return WrapErr(ErrValidationFailed, "invalid actor id")
+		return internal.WrapErr(internal.ErrValidationFailed, "invalid actor id")
 	}
 
 	if d.EventID == "" {
-		return WrapErr(ErrValidationFailed, "invalid event id")
+		return internal.WrapErr(internal.ErrValidationFailed, "invalid event id")
 	}
 
 	return nil
@@ -46,11 +48,11 @@ type UpdateEventRequest struct {
 
 func (u *UpdateEventRequest) Validate() error {
 	if u.ActorID == "" {
-		return WrapErr(ErrValidationFailed, "invalid actor id")
+		return internal.WrapErr(internal.ErrValidationFailed, "invalid actor id")
 	}
 
 	if u.Event == nil {
-		return WrapErr(ErrValidationFailed, "invalid event")
+		return internal.WrapErr(internal.ErrValidationFailed, "invalid event")
 	}
 
 	return u.Event.Validate()
@@ -62,14 +64,14 @@ type FindEventByIDRequest struct {
 
 func (f *FindEventByIDRequest) Validate() error {
 	if f.EventID == "" {
-		return WrapErr(ErrValidationFailed, "invalid event id")
+		return internal.WrapErr(internal.ErrValidationFailed, "invalid event id")
 	}
 
 	return nil
 }
 
-//go:generate mockgen -destination=mock/mock_event_service.go -package=mock github.com/dzakaammar/event-scheduling-example/internal EventService
-type EventService interface {
+//go:generate mockgen -destination=../mock/mock_scheduling_service.go -package=mock github.com/dzakaammar/event-scheduling-example/internal/core SchedulingService
+type SchedulingService interface {
 	CreateEvent(ctx context.Context, req *CreateEventRequest) error
 	DeleteEventByID(ctx context.Context, req *DeleteEventByIDRequest) error
 	UpdateEvent(ctx context.Context, req *UpdateEventRequest) error

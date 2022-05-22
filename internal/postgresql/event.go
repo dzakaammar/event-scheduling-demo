@@ -3,7 +3,7 @@ package postgresql
 import (
 	"context"
 
-	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -19,7 +19,7 @@ func NewEventRepository(db *gorm.DB) *EventRepository {
 	}
 }
 
-func (e *EventRepository) Store(ctx context.Context, event *internal.Event) error {
+func (e *EventRepository) Store(ctx context.Context, event *core.Event) error {
 	trx := e.db.Begin()
 
 	err := trx.WithContext(ctx).Create(event).Error
@@ -32,7 +32,7 @@ func (e *EventRepository) Store(ctx context.Context, event *internal.Event) erro
 }
 
 func (e *EventRepository) DeleteByID(ctx context.Context, id string) error {
-	err := e.db.WithContext(ctx).Where("id = ?", id).Delete(&internal.Event{}).Error
+	err := e.db.WithContext(ctx).Where("id = ?", id).Delete(&core.Event{}).Error
 	if err != nil {
 		logrus.Error(err)
 		return err
@@ -40,7 +40,7 @@ func (e *EventRepository) DeleteByID(ctx context.Context, id string) error {
 	return nil
 }
 
-func (e *EventRepository) Update(ctx context.Context, event *internal.Event) error {
+func (e *EventRepository) Update(ctx context.Context, event *core.Event) error {
 	trx := e.db.Begin()
 
 	err := trx.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(event).Error
@@ -52,8 +52,8 @@ func (e *EventRepository) Update(ctx context.Context, event *internal.Event) err
 	return trx.Commit().Error
 }
 
-func (e *EventRepository) FindByID(ctx context.Context, id string) (*internal.Event, error) {
-	var event *internal.Event
+func (e *EventRepository) FindByID(ctx context.Context, id string) (*core.Event, error) {
+	var event *core.Event
 
 	err := e.db.WithContext(ctx).Preload(clause.Associations).Where("id = ?", id).First(&event).Error
 	if err != nil {

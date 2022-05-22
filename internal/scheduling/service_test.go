@@ -1,4 +1,4 @@
-package service_test
+package scheduling_test
 
 import (
 	"context"
@@ -6,8 +6,9 @@ import (
 	"time"
 
 	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/dzakaammar/event-scheduling-example/internal/mock"
-	"github.com/dzakaammar/event-scheduling-example/internal/service"
+	"github.com/dzakaammar/event-scheduling-example/internal/scheduling"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +18,7 @@ func TestNewEventService(t *testing.T) {
 	defer ctrl.Finish()
 
 	type args struct {
-		eventRepo internal.EventRepository
+		eventRepo core.EventRepository
 	}
 	tests := []struct {
 		name string
@@ -32,7 +33,7 @@ func TestNewEventService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := service.NewEventService(tt.args.eventRepo)
+			got := scheduling.NewEventService(tt.args.eventRepo)
 			assert.NotNil(t, got)
 		})
 	}
@@ -40,11 +41,11 @@ func TestNewEventService(t *testing.T) {
 
 func TestEventService_CreateEvent(t *testing.T) {
 	type fields struct {
-		eventRepoMock func(ctrl *gomock.Controller) internal.EventRepository
+		eventRepoMock func(ctrl *gomock.Controller) core.EventRepository
 	}
 	type args struct {
 		ctx context.Context
-		req *internal.CreateEventRequest
+		req *core.CreateEventRequest
 	}
 	tests := []struct {
 		name    string
@@ -55,7 +56,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().Store(gomock.Any(), gomock.Any()).Return(nil)
 					return repo
@@ -63,21 +64,21 @@ func TestEventService_CreateEvent(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.CreateEventRequest{
+				req: &core.CreateEventRequest{
 					ActorID: "123",
-					Event: &internal.Event{
+					Event: &core.Event{
 						ID:          "123",
 						Title:       "test",
 						Description: "test123",
 						Timezone:    "Asia/Jakarta",
-						Schedules: []internal.Schedule{
+						Schedules: []core.Schedule{
 							{
 								ID:            "test123",
 								EventID:       "123",
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 							{
 								ID:            "test1234",
@@ -85,7 +86,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 						},
 					},
@@ -96,7 +97,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 		{
 			name: "Not OK - error from repo",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().Store(gomock.Any(), gomock.Any()).Return(internal.ErrValidationFailed)
 					return repo
@@ -104,21 +105,21 @@ func TestEventService_CreateEvent(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.CreateEventRequest{
+				req: &core.CreateEventRequest{
 					ActorID: "123",
-					Event: &internal.Event{
+					Event: &core.Event{
 						ID:          "123",
 						Title:       "test",
 						Description: "test123",
 						Timezone:    "Asia/Jakarta",
-						Schedules: []internal.Schedule{
+						Schedules: []core.Schedule{
 							{
 								ID:            "test123",
 								EventID:       "123",
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 							{
 								ID:            "test1234",
@@ -126,7 +127,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 						},
 					},
@@ -137,28 +138,28 @@ func TestEventService_CreateEvent(t *testing.T) {
 		{
 			name: "Not OK - validation error",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					return repo
 				},
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.CreateEventRequest{
+				req: &core.CreateEventRequest{
 					ActorID: "123",
-					Event: &internal.Event{
+					Event: &core.Event{
 						ID:          "",
 						Title:       "",
 						Description: "",
 						Timezone:    "",
-						Schedules: []internal.Schedule{
+						Schedules: []core.Schedule{
 							{
 								ID:            "test123",
 								EventID:       "123",
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 							{
 								ID:            "test1234",
@@ -166,7 +167,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 						},
 					},
@@ -180,7 +181,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := service.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
 			err := e.CreateEvent(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -193,11 +194,11 @@ func TestEventService_CreateEvent(t *testing.T) {
 
 func TestEventService_DeleteEventByID(t *testing.T) {
 	type fields struct {
-		eventRepoMock func(ctrl *gomock.Controller) internal.EventRepository
+		eventRepoMock func(ctrl *gomock.Controller) core.EventRepository
 	}
 	type args struct {
 		ctx context.Context
-		req *internal.DeleteEventByIDRequest
+		req *core.DeleteEventByIDRequest
 	}
 	tests := []struct {
 		name    string
@@ -208,7 +209,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).Times(1).
 						Return(nil)
@@ -217,7 +218,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.DeleteEventByIDRequest{
+				req: &core.DeleteEventByIDRequest{
 					ActorID: "test123",
 					EventID: "123",
 				},
@@ -227,7 +228,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 		{
 			name: "Not OK - error from repo",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).Times(1).
 						Return(internal.ErrInvalidRequest)
@@ -236,7 +237,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.DeleteEventByIDRequest{
+				req: &core.DeleteEventByIDRequest{
 					ActorID: "test123",
 					EventID: "123",
 				},
@@ -246,14 +247,14 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 		{
 			name: "Not OK - invalid request",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					return repo
 				},
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.DeleteEventByIDRequest{
+				req: &core.DeleteEventByIDRequest{
 					ActorID: "",
 					EventID: "",
 				},
@@ -266,7 +267,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := service.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
 			err := e.DeleteEventByID(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -279,11 +280,11 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 
 func TestEventService_UpdateEvent(t *testing.T) {
 	type fields struct {
-		eventRepoMock func(ctrl *gomock.Controller) internal.EventRepository
+		eventRepoMock func(ctrl *gomock.Controller) core.EventRepository
 	}
 	type args struct {
 		ctx context.Context
-		req *internal.UpdateEventRequest
+		req *core.UpdateEventRequest
 	}
 	tests := []struct {
 		name    string
@@ -294,7 +295,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().Update(gomock.Any(), gomock.Any()).Times(1).
 						Return(nil)
@@ -303,22 +304,22 @@ func TestEventService_UpdateEvent(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.UpdateEventRequest{
+				req: &core.UpdateEventRequest{
 					ID:      "test123",
 					ActorID: "test123",
-					Event: &internal.Event{
+					Event: &core.Event{
 						ID:          "test123",
 						Title:       "updated",
 						Description: "description",
 						Timezone:    "Asia/Jakarta",
-						Schedules: []internal.Schedule{
+						Schedules: []core.Schedule{
 							{
 								ID:            "sch1",
 								EventID:       "test123",
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 							{
 								ID:            "sch1",
@@ -326,15 +327,15 @@ func TestEventService_UpdateEvent(t *testing.T) {
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 						},
-						Invitations: []internal.Invitation{
+						Invitations: []core.Invitation{
 							{
 								ID:      "inv1",
 								EventID: "test123",
 								UserID:  "2",
-								Status:  internal.InvitationStatus_Confirmed,
+								Status:  core.InvitationStatus_Confirmed,
 								Token:   "123",
 							},
 						},
@@ -345,7 +346,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 		{
 			name: "Not OK - error from repo",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().Update(gomock.Any(), gomock.Any()).Times(1).
 						Return(internal.ErrInvalidRequest)
@@ -354,22 +355,22 @@ func TestEventService_UpdateEvent(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.UpdateEventRequest{
+				req: &core.UpdateEventRequest{
 					ID:      "test123",
 					ActorID: "test123",
-					Event: &internal.Event{
+					Event: &core.Event{
 						ID:          "test123",
 						Title:       "updated",
 						Description: "description",
 						Timezone:    "Asia/Jakarta",
-						Schedules: []internal.Schedule{
+						Schedules: []core.Schedule{
 							{
 								ID:            "sch1",
 								EventID:       "test123",
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 							{
 								ID:            "sch1",
@@ -377,15 +378,15 @@ func TestEventService_UpdateEvent(t *testing.T) {
 								StartTime:     time.Now().Unix(),
 								Duration:      120,
 								IsFullDay:     false,
-								RecurringType: internal.RecurringType_None,
+								RecurringType: core.RecurringType_None,
 							},
 						},
-						Invitations: []internal.Invitation{
+						Invitations: []core.Invitation{
 							{
 								ID:      "inv1",
 								EventID: "test123",
 								UserID:  "2",
-								Status:  internal.InvitationStatus_Confirmed,
+								Status:  core.InvitationStatus_Confirmed,
 								Token:   "123",
 							},
 						},
@@ -397,14 +398,14 @@ func TestEventService_UpdateEvent(t *testing.T) {
 		{
 			name: "Not OK - validation error",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					return repo
 				},
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.UpdateEventRequest{
+				req: &core.UpdateEventRequest{
 					ID:      "",
 					ActorID: "",
 					Event:   nil,
@@ -418,7 +419,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := service.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
 			err := e.UpdateEvent(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -431,53 +432,53 @@ func TestEventService_UpdateEvent(t *testing.T) {
 
 func TestEventService_FindEventByID(t *testing.T) {
 	type fields struct {
-		eventRepoMock func(ctrl *gomock.Controller) internal.EventRepository
+		eventRepoMock func(ctrl *gomock.Controller) core.EventRepository
 	}
 	type args struct {
 		ctx context.Context
-		req *internal.FindEventByIDRequest
+		req *core.FindEventByIDRequest
 	}
 	tests := []struct {
 		name    string
 		fields  fields
 		args    args
-		want    *internal.Event
+		want    *core.Event
 		wantErr bool
 	}{
 		{
 			name: "OK",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().FindByID(gomock.Any(), gomock.Any()).Times(1).
-						Return(&internal.Event{
+						Return(&core.Event{
 							ID:          "123",
 							Title:       "test123",
 							Description: "test123",
 							Timezone:    "Asia/Jakarta",
-							Schedules: []internal.Schedule{
+							Schedules: []core.Schedule{
 								{
 									ID:            "sch1",
 									EventID:       "123",
 									StartTime:     time.Now().Unix(),
 									Duration:      120,
 									IsFullDay:     false,
-									RecurringType: internal.RecurringType_None,
+									RecurringType: core.RecurringType_None,
 								},
 							},
-							Invitations: []internal.Invitation{
+							Invitations: []core.Invitation{
 								{
 									ID:      "invitation1",
 									EventID: "123",
 									UserID:  "2",
-									Status:  internal.InvitationStatus_Unknown,
+									Status:  core.InvitationStatus_Unknown,
 									Token:   "123",
 								},
 								{
 									ID:      "invitation2",
 									EventID: "123",
 									UserID:  "3",
-									Status:  internal.InvitationStatus_Unknown,
+									Status:  core.InvitationStatus_Unknown,
 									Token:   "123",
 								},
 							},
@@ -487,38 +488,38 @@ func TestEventService_FindEventByID(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.FindEventByIDRequest{
+				req: &core.FindEventByIDRequest{
 					EventID: "123",
 				},
 			},
-			want: &internal.Event{
+			want: &core.Event{
 				ID:          "123",
 				Title:       "test123",
 				Description: "test123",
 				Timezone:    "Asia/Jakarta",
-				Schedules: []internal.Schedule{
+				Schedules: []core.Schedule{
 					{
 						ID:            "sch1",
 						EventID:       "123",
 						StartTime:     time.Now().Unix(),
 						Duration:      120,
 						IsFullDay:     false,
-						RecurringType: internal.RecurringType_None,
+						RecurringType: core.RecurringType_None,
 					},
 				},
-				Invitations: []internal.Invitation{
+				Invitations: []core.Invitation{
 					{
 						ID:      "invitation1",
 						EventID: "123",
 						UserID:  "2",
-						Status:  internal.InvitationStatus_Unknown,
+						Status:  core.InvitationStatus_Unknown,
 						Token:   "123",
 					},
 					{
 						ID:      "invitation2",
 						EventID: "123",
 						UserID:  "3",
-						Status:  internal.InvitationStatus_Unknown,
+						Status:  core.InvitationStatus_Unknown,
 						Token:   "123",
 					},
 				},
@@ -528,7 +529,7 @@ func TestEventService_FindEventByID(t *testing.T) {
 		{
 			name: "Not OK - error from repo",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					repo.EXPECT().FindByID(gomock.Any(), gomock.Any()).Times(1).
 						Return(nil, internal.ErrInvalidRequest)
@@ -537,7 +538,7 @@ func TestEventService_FindEventByID(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.FindEventByIDRequest{
+				req: &core.FindEventByIDRequest{
 					EventID: "123",
 				},
 			},
@@ -547,14 +548,14 @@ func TestEventService_FindEventByID(t *testing.T) {
 		{
 			name: "Not OK - invalid request",
 			fields: fields{
-				eventRepoMock: func(ctrl *gomock.Controller) internal.EventRepository {
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
 					return repo
 				},
 			},
 			args: args{
 				ctx: context.Background(),
-				req: &internal.FindEventByIDRequest{
+				req: &core.FindEventByIDRequest{
 					EventID: "",
 				},
 			},
@@ -567,7 +568,7 @@ func TestEventService_FindEventByID(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := service.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
 			got, err := e.FindEventByID(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)

@@ -7,6 +7,7 @@ import (
 
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
 	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/dzakaammar/event-scheduling-example/internal/endpoint"
 	"github.com/dzakaammar/event-scheduling-example/internal/mock"
 	"github.com/golang/mock/gomock"
@@ -20,7 +21,7 @@ func TestNewGRPCEndpoint(t *testing.T) {
 	defer ctrl.Finish()
 
 	type args struct {
-		svc internal.EventService
+		svc core.SchedulingService
 	}
 	tests := []struct {
 		name string
@@ -29,7 +30,7 @@ func TestNewGRPCEndpoint(t *testing.T) {
 		{
 			name: "OK",
 			args: args{
-				svc: mock.NewMockEventService(ctrl),
+				svc: mock.NewMockSchedulingService(ctrl),
 			},
 		},
 	}
@@ -43,7 +44,7 @@ func TestNewGRPCEndpoint(t *testing.T) {
 
 func TestGRPCEndpoint_CreateEvent(t *testing.T) {
 	type fields struct {
-		svcMock func(ctrl *gomock.Controller) internal.EventService
+		svcMock func(ctrl *gomock.Controller) core.SchedulingService
 	}
 	type args struct {
 		ctx context.Context
@@ -58,8 +59,8 @@ func TestGRPCEndpoint_CreateEvent(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svc := mock.NewMockEventService(ctrl)
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svc := mock.NewMockSchedulingService(ctrl)
 					svc.EXPECT().CreateEvent(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 					return svc
 				},
@@ -96,8 +97,8 @@ func TestGRPCEndpoint_CreateEvent(t *testing.T) {
 		{
 			name: "Not OK - service error",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svc := mock.NewMockEventService(ctrl)
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svc := mock.NewMockSchedulingService(ctrl)
 					svc.EXPECT().CreateEvent(gomock.Any(), gomock.Any()).Times(1).Return(internal.ErrInvalidRequest)
 					return svc
 				},
@@ -132,8 +133,8 @@ func TestGRPCEndpoint_CreateEvent(t *testing.T) {
 		{
 			name: "Not OK - failed to parse data",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svc := mock.NewMockEventService(ctrl)
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svc := mock.NewMockSchedulingService(ctrl)
 					return svc
 				},
 			},
@@ -184,7 +185,7 @@ func TestGRPCEndpoint_CreateEvent(t *testing.T) {
 
 func TestGRPCEndpoint_DeleteEventByID(t *testing.T) {
 	type fields struct {
-		svcMock func(ctrl *gomock.Controller) internal.EventService
+		svcMock func(ctrl *gomock.Controller) core.SchedulingService
 	}
 	type args struct {
 		ctx context.Context
@@ -200,9 +201,9 @@ func TestGRPCEndpoint_DeleteEventByID(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svcMock := mock.NewMockEventService(ctrl)
-					svcMock.EXPECT().DeleteEventByID(gomock.Any(), &internal.DeleteEventByIDRequest{
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svcMock := mock.NewMockSchedulingService(ctrl)
+					svcMock.EXPECT().DeleteEventByID(gomock.Any(), &core.DeleteEventByIDRequest{
 						ActorID: "1",
 						EventID: "test123",
 					}).Times(1).Return(nil)
@@ -222,9 +223,9 @@ func TestGRPCEndpoint_DeleteEventByID(t *testing.T) {
 		{
 			name: "Not OK - failed from service",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svcMock := mock.NewMockEventService(ctrl)
-					svcMock.EXPECT().DeleteEventByID(gomock.Any(), &internal.DeleteEventByIDRequest{
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svcMock := mock.NewMockSchedulingService(ctrl)
+					svcMock.EXPECT().DeleteEventByID(gomock.Any(), &core.DeleteEventByIDRequest{
 						ActorID: "1",
 						EventID: "test123",
 					}).Times(1).Return(internal.ErrInvalidRequest)
@@ -260,7 +261,7 @@ func TestGRPCEndpoint_DeleteEventByID(t *testing.T) {
 
 func TestGRPCEndpoint_UpdateEvent(t *testing.T) {
 	type fields struct {
-		svcMock func(ctrl *gomock.Controller) internal.EventService
+		svcMock func(ctrl *gomock.Controller) core.SchedulingService
 	}
 	type args struct {
 		ctx context.Context
@@ -276,8 +277,8 @@ func TestGRPCEndpoint_UpdateEvent(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svcMock := mock.NewMockEventService(ctrl)
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svcMock := mock.NewMockSchedulingService(ctrl)
 					svcMock.EXPECT().UpdateEvent(gomock.Any(), gomock.Any()).Times(1).
 						Return(nil)
 
@@ -317,8 +318,8 @@ func TestGRPCEndpoint_UpdateEvent(t *testing.T) {
 		{
 			name: "Not OK - error from service",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svcMock := mock.NewMockEventService(ctrl)
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svcMock := mock.NewMockSchedulingService(ctrl)
 					svcMock.EXPECT().UpdateEvent(gomock.Any(), gomock.Any()).Times(1).
 						Return(internal.ErrInvalidRequest)
 
@@ -374,7 +375,7 @@ func TestGRPCEndpoint_UpdateEvent(t *testing.T) {
 
 func TestGRPCEndpoint_FindEventByID(t *testing.T) {
 	type fields struct {
-		svcMock func(ctrl *gomock.Controller) internal.EventService
+		svcMock func(ctrl *gomock.Controller) core.SchedulingService
 	}
 	type args struct {
 		ctx context.Context
@@ -392,33 +393,33 @@ func TestGRPCEndpoint_FindEventByID(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svcMock := mock.NewMockEventService(ctrl)
-					svcMock.EXPECT().FindEventByID(gomock.Any(), &internal.FindEventByIDRequest{
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svcMock := mock.NewMockSchedulingService(ctrl)
+					svcMock.EXPECT().FindEventByID(gomock.Any(), &core.FindEventByIDRequest{
 						EventID: "test123",
-					}).Times(1).Return(&internal.Event{
+					}).Times(1).Return(&core.Event{
 						ID:          "test123",
 						Title:       "test123",
 						Description: "test123",
 						Timezone:    "Asia/Jakarta",
-						Schedules: []internal.Schedule{
+						Schedules: []core.Schedule{
 							{
 								ID:                "sch1",
 								EventID:           "test123",
 								StartTime:         time.Date(2022, 0o1, 0o1, 0o0, 0o0, 0o0, 0o0, time.UTC).Unix(),
 								Duration:          120,
 								IsFullDay:         false,
-								RecurringType:     internal.RecurringType_None,
+								RecurringType:     core.RecurringType_None,
 								RecurringInterval: 0,
 							},
 						},
 						CreatedBy: "1",
-						Invitations: []internal.Invitation{
+						Invitations: []core.Invitation{
 							{
 								ID:      "123",
 								EventID: "test123",
 								UserID:  "2",
-								Status:  internal.InvitationStatus_Unknown,
+								Status:  core.InvitationStatus_Unknown,
 								Token:   "test",
 							},
 						},
@@ -460,9 +461,9 @@ func TestGRPCEndpoint_FindEventByID(t *testing.T) {
 		{
 			name: "Not OK- error from service",
 			fields: fields{
-				svcMock: func(ctrl *gomock.Controller) internal.EventService {
-					svcMock := mock.NewMockEventService(ctrl)
-					svcMock.EXPECT().FindEventByID(gomock.Any(), &internal.FindEventByIDRequest{
+				svcMock: func(ctrl *gomock.Controller) core.SchedulingService {
+					svcMock := mock.NewMockSchedulingService(ctrl)
+					svcMock.EXPECT().FindEventByID(gomock.Any(), &core.FindEventByIDRequest{
 						EventID: "test123",
 					}).Times(1).Return(nil, internal.ErrInvalidRequest)
 

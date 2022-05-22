@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/driver/postgres"
@@ -47,7 +47,7 @@ func TestEventRepository_Store(t *testing.T) {
 	}
 	type args struct {
 		ctx   context.Context
-		event *internal.Event
+		event *core.Event
 	}
 	tests := []struct {
 		name    string
@@ -73,7 +73,7 @@ func TestEventRepository_Store(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				event: &internal.Event{
+				event: &core.Event{
 					ID:          "test",
 					Title:       "test123",
 					Description: "test123",
@@ -99,7 +99,7 @@ func TestEventRepository_Store(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				event: &internal.Event{
+				event: &core.Event{
 					ID:          "test",
 					Title:       "test123",
 					Description: "test123",
@@ -201,7 +201,7 @@ func TestEventRepository_Update(t *testing.T) {
 	}
 	type args struct {
 		ctx   context.Context
-		event *internal.Event
+		event *core.Event
 	}
 	tests := []struct {
 		name    string
@@ -230,25 +230,25 @@ func TestEventRepository_Update(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				event: &internal.Event{
+				event: &core.Event{
 					ID: "123",
-					Schedules: []internal.Schedule{
+					Schedules: []core.Schedule{
 						{
 							ID:                "123",
 							EventID:           "123",
 							StartTime:         time.Now().Unix(),
 							Duration:          120,
 							IsFullDay:         false,
-							RecurringType:     internal.RecurringType_None,
+							RecurringType:     core.RecurringType_None,
 							RecurringInterval: 0,
 						},
 					},
-					Invitations: []internal.Invitation{
+					Invitations: []core.Invitation{
 						{
 							ID:      "123",
 							EventID: "123",
 							UserID:  "123",
-							Status:  internal.InvitationStatus_Unknown,
+							Status:  core.InvitationStatus_Unknown,
 							Token:   "123",
 						},
 					},
@@ -276,25 +276,25 @@ func TestEventRepository_Update(t *testing.T) {
 			},
 			args: args{
 				ctx: context.Background(),
-				event: &internal.Event{
+				event: &core.Event{
 					ID: "123",
-					Schedules: []internal.Schedule{
+					Schedules: []core.Schedule{
 						{
 							ID:                "123",
 							EventID:           "123",
 							StartTime:         time.Now().Unix(),
 							Duration:          120,
 							IsFullDay:         false,
-							RecurringType:     internal.RecurringType_None,
+							RecurringType:     core.RecurringType_None,
 							RecurringInterval: 0,
 						},
 					},
-					Invitations: []internal.Invitation{
+					Invitations: []core.Invitation{
 						{
 							ID:      "123",
 							EventID: "123",
 							UserID:  "123",
-							Status:  internal.InvitationStatus_Unknown,
+							Status:  core.InvitationStatus_Unknown,
 							Token:   "123",
 						},
 					},
@@ -328,7 +328,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    *internal.Event
+		want    *core.Event
 		wantErr bool
 	}{
 		{
@@ -352,10 +352,10 @@ func TestEventRepository_FindByID(t *testing.T) {
 				ctx: context.Background(),
 				id:  "123",
 			},
-			want: &internal.Event{
+			want: &core.Event{
 				ID:          "123",
-				Invitations: []internal.Invitation{},
-				Schedules:   []internal.Schedule{},
+				Invitations: []core.Invitation{},
+				Schedules:   []core.Schedule{},
 			},
 		},
 		{

@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/dzakaammar/event-scheduling-example/internal/endpoint"
-	"github.com/dzakaammar/event-scheduling-example/internal/instrumentation"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
+	"github.com/dzakaammar/event-scheduling-example/internal/scheduling"
 	"github.com/dzakaammar/event-scheduling-example/internal/server"
-	"github.com/dzakaammar/event-scheduling-example/internal/service"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"go.opentelemetry.io/otel"
@@ -43,16 +43,16 @@ func runGRPCServer(_ *cobra.Command, _ []string) error {
 		log.Fatal(err)
 	}
 
-	var repo internal.EventRepository
+	var repo core.EventRepository
 	{
 		repo = postgresql.NewEventRepository(dbConn)
-		repo = instrumentation.NewEventRepository(repo)
+		repo = postgresql.NewInstrumentation(repo)
 	}
 
-	var svc internal.EventService
+	var svc core.SchedulingService
 	{
-		svc = service.NewEventService(repo)
-		svc = instrumentation.NewEventService(svc)
+		svc = scheduling.NewEventService(repo)
+		svc = scheduling.NewInstrumentation(svc)
 	}
 
 	grpcEndpoint := endpoint.NewGRPCEndpoint(svc)

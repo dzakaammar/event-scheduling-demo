@@ -1,9 +1,10 @@
-package internal
+package core
 
 import (
 	"context"
 	"time"
 
+	"github.com/dzakaammar/event-scheduling-example/internal"
 	"github.com/go-playground/validator/v10"
 	"github.com/satori/uuid"
 )
@@ -33,7 +34,7 @@ func (e *Event) TableName() string {
 func (e *Event) Validate() error {
 	_, err := time.LoadLocation(e.Timezone)
 	if err != nil {
-		return WrapErr(ErrInvalidTimezone, e.Timezone)
+		return internal.WrapErr(internal.ErrInvalidTimezone, e.Timezone)
 	}
 	return validate.Struct(e)
 }
@@ -53,7 +54,7 @@ func NewEvent() *Event {
 	}
 }
 
-//go:generate mockgen -destination=mock/mock_event_repository.go -package=mock github.com/dzakaammar/event-scheduling-example/internal EventRepository
+//go:generate mockgen -destination=../mock/mock_event_repository.go -package=mock github.com/dzakaammar/event-scheduling-example/internal/core EventRepository
 type EventRepository interface {
 	Store(ctx context.Context, e *Event) error
 	DeleteByID(ctx context.Context, id string) error

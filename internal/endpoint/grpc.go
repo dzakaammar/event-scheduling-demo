@@ -5,7 +5,7 @@ import (
 	"time"
 
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
-	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -14,11 +14,11 @@ import (
 )
 
 type GRPCEndpoint struct {
-	svc internal.EventService
+	svc core.SchedulingService
 	v1.UnimplementedAPIServer
 }
 
-func NewGRPCEndpoint(svc internal.EventService) *GRPCEndpoint {
+func NewGRPCEndpoint(svc core.SchedulingService) *GRPCEndpoint {
 	return &GRPCEndpoint{
 		svc: svc,
 	}
@@ -72,7 +72,7 @@ func (g *GRPCEndpoint) UpdateEvent(ctx context.Context, req *v1.UpdateEventReque
 }
 
 func (g *GRPCEndpoint) FindEventByID(ctx context.Context, req *v1.FindEventByIDRequest) (*v1.FindEventByIDResponse, error) {
-	event, err := g.svc.FindEventByID(ctx, &internal.FindEventByIDRequest{EventID: req.GetId()})
+	event, err := g.svc.FindEventByID(ctx, &core.FindEventByIDRequest{EventID: req.GetId()})
 	if err != nil {
 		log.Error(err)
 		return nil, mapErrToStatusCode(err)
@@ -88,12 +88,11 @@ func (g *GRPCEndpoint) FindEventByID(ctx context.Context, req *v1.FindEventByIDR
 	}, nil
 }
 
-func (g *GRPCEndpoint) Check(ctx context.Context, in *v1.HealthCheckRequest) (*v1.HealthCheckResponse, error) {
+func (g *GRPCEndpoint) Check(ctx context.Context, _ *v1.HealthCheckRequest) (*v1.HealthCheckResponse, error) {
 	return &v1.HealthCheckResponse{Status: v1.HealthCheckResponse_SERVING}, nil
 }
 
-func (g *GRPCEndpoint) Watch(in *v1.HealthCheckRequest, _ v1.API_WatchServer) error {
-	// Example of how to register both methods but only implement the Check method.
+func (g *GRPCEndpoint) Watch(_ *v1.HealthCheckRequest, _ v1.API_WatchServer) error {
 	return status.Error(codes.Unimplemented, "unimplemented")
 }
 
@@ -109,14 +108,14 @@ func extractAuthorization(ctx context.Context) string {
 	return a[0]
 }
 
-func parseCreateEventRequest(ctx context.Context, req *v1.CreateEventRequest) (*internal.CreateEventRequest, error) {
+func parseCreateEventRequest(ctx context.Context, req *v1.CreateEventRequest) (*core.CreateEventRequest, error) {
 	if req == nil || req.GetEvent() == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	actorID := extractAuthorization(ctx)
 
-	event := internal.NewEvent()
+	event := core.NewEvent()
 	event.Title = req.GetEvent().GetTitle()
 	event.Description = req.GetEvent().GetDescription()
 	event.Timezone = req.GetEvent().GetTimezone()
@@ -131,30 +130,30 @@ func parseCreateEventRequest(ctx context.Context, req *v1.CreateEventRequest) (*
 
 	event.Invitations = parseInvitations(req.GetEvent().GetAttendees(), event.ID)
 
-	return &internal.CreateEventRequest{
+	return &core.CreateEventRequest{
 		ActorID: actorID,
 		Event:   event,
 	}, nil
 }
 
-func parseDeleteEventByIDtRequest(ctx context.Context, req *v1.DeleteEventByIDRequest) (*internal.DeleteEventByIDRequest, error) {
+func parseDeleteEventByIDtRequest(ctx context.Context, req *v1.DeleteEventByIDRequest) (*core.DeleteEventByIDRequest, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	return &internal.DeleteEventByIDRequest{
+	return &core.DeleteEventByIDRequest{
 		ActorID: extractAuthorization(ctx),
 		EventID: req.GetId(),
 	}, nil
 }
 
-func parseUpdateEventByIDRequest(ctx context.Context, req *v1.UpdateEventRequest) (*internal.UpdateEventRequest, error) {
+func parseUpdateEventByIDRequest(ctx context.Context, req *v1.UpdateEventRequest) (*core.UpdateEventRequest, error) {
 	if req == nil || req.GetEvent() == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	now := time.Now()
-	event := internal.Event{
+	event := core.Event{
 		ID:          req.GetId(),
 		Title:       req.GetEvent().GetTitle(),
 		Description: req.GetEvent().GetDescription(),
@@ -169,17 +168,17 @@ func parseUpdateEventByIDRequest(ctx context.Context, req *v1.UpdateEventRequest
 	event.Schedules = sch
 	event.Invitations = parseInvitations(req.GetEvent().GetAttendees(), event.ID)
 
-	return &internal.UpdateEventRequest{
+	return &core.UpdateEventRequest{
 		ID:      req.GetId(),
 		ActorID: extractAuthorization(ctx),
 		Event:   &event,
 	}, nil
 }
 
-func parseSchedules(sch []*v1.Schedule, eventID string) ([]internal.Schedule, error) {
-	var schedules []internal.Schedule
+func parseSchedules(sch []*v1.Schedule, eventID string) ([]core.Schedule, error) {
+	var schedules []core.Schedule
 	for _, sch := range sch {
-		s, err := internal.NewSchedule(
+		s, err := core.NewSchedule(
 			eventID,
 			sch.GetStartTime(),
 			sch.GetEndTime(),
@@ -194,16 +193,16 @@ func parseSchedules(sch []*v1.Schedule, eventID string) ([]internal.Schedule, er
 	return schedules, nil
 }
 
-func parseInvitations(attendees []string, eventID string) []internal.Invitation {
-	var invitations []internal.Invitation
+func parseInvitations(attendees []string, eventID string) []core.Invitation {
+	var invitations []core.Invitation
 	for _, userID := range attendees {
-		i := internal.NewInvitation(eventID, userID)
+		i := core.NewInvitation(eventID, userID)
 		invitations = append(invitations, i)
 	}
 	return invitations
 }
 
-func parseEventToPB(event *internal.Event) (*v1.Event, error) {
+func parseEventToPB(event *core.Event) (*v1.Event, error) {
 	e := &v1.Event{
 		Id:            event.ID,
 		Title:         event.Title,
@@ -241,22 +240,22 @@ func parseEventToPB(event *internal.Event) (*v1.Event, error) {
 	return e, nil
 }
 
-func mapRecurringType(rt v1.RecurringType) internal.RecurringType {
+func mapRecurringType(rt v1.RecurringType) core.RecurringType {
 	switch rt {
 	case v1.RecurringType_DAILY:
-		return internal.RecurringType_Daily
+		return core.RecurringType_Daily
 	case v1.RecurringType_EVERY_WEEK:
-		return internal.RecurringType_Every_Week
+		return core.RecurringType_Every_Week
 	default:
-		return internal.RecurringType_None
+		return core.RecurringType_None
 	}
 }
 
-func mapRecurringTypeToPB(rt internal.RecurringType) v1.RecurringType {
+func mapRecurringTypeToPB(rt core.RecurringType) v1.RecurringType {
 	switch rt {
-	case internal.RecurringType_Daily:
+	case core.RecurringType_Daily:
 		return v1.RecurringType_DAILY
-	case internal.RecurringType_Every_Week:
+	case core.RecurringType_Every_Week:
 		return v1.RecurringType_EVERY_WEEK
 	default:
 		return v1.RecurringType_NONE

@@ -6,7 +6,6 @@ type Config struct {
 	DbSource           string `mapstructure:"DB_SOURCE"`
 	GRPCAddress        string `mapstructure:"GRPC_ADDRESS"`
 	GRPCGatewayAddress string `mapstructure:"GRPC_GATEWAY_ADDRESS"`
-	JaegerURL          string `mapstructure:"JAEGER_URL"`
 	OTLPEndpoint       string `mapstructure:"OTEL_EXPORTER_OTLP_ENDPOINT"`
 }
 
