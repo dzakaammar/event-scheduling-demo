@@ -1,26 +1,88 @@
-package server
+package main
 
 import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 
+	internalCmd "github.com/dzakaammar/event-scheduling-example/cmd/internal"
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
+	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/core"
+	"github.com/dzakaammar/event-scheduling-example/internal/endpoint"
+	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
+	"github.com/dzakaammar/event-scheduling-example/internal/scheduling"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-type GRPCServer struct {
+func main() {
+	log.Fatalf("Error running grpc server: %v", run())
+}
+
+func run() error {
+	log.SetFormatter(&log.JSONFormatter{})
+
+	cfg, err := internal.LoadConfig(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tp, err := internalCmd.InitTracerProvider(cfg.OTLPEndpoint)
+	if err != nil {
+		log.Fatal(err)
+	}
+	otel.SetTracerProvider(tp)
+
+	dbConn, err := gorm.Open(postgres.New(postgres.Config{
+		DSN: cfg.DbSource,
+	}))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var repo core.EventRepository
+	{
+		repo = postgresql.NewEventRepository(dbConn)
+		repo = postgresql.NewInstrumentation(repo)
+	}
+
+	var svc core.SchedulingService
+	{
+		svc = scheduling.NewEventService(repo)
+		svc = scheduling.NewInstrumentation(svc)
+	}
+
+	grpcEndpoint := endpoint.NewGRPCEndpoint(svc)
+	grpcServer := newGRPCServer(grpcEndpoint)
+
+	waitForSignal := internalCmd.GracefulShutdown(func() error {
+		return grpcServer.Start(cfg.GRPCAddress)
+	})
+
+	waitForSignal()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return grpcServer.Stop(ctx)
+}
+
+type grpcServer struct {
 	srv *grpc.Server
 }
 
-func NewGRPCServer(endpoint v1.APIServer) *GRPCServer {
+func newGRPCServer(endpoint v1.APIServer) *grpcServer {
 	logger := logrus.New()
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.Level = logrus.ErrorLevel
@@ -53,12 +115,12 @@ func NewGRPCServer(endpoint v1.APIServer) *GRPCServer {
 	v1.RegisterAPIServer(srv, endpoint)
 	reflection.Register(srv)
 
-	return &GRPCServer{
+	return &grpcServer{
 		srv: srv,
 	}
 }
 
-func (g *GRPCServer) Start(address string) error {
+func (g *grpcServer) Start(address string) error {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
@@ -68,7 +130,7 @@ func (g *GRPCServer) Start(address string) error {
 	return g.srv.Serve(lis)
 }
 
-func (g *GRPCServer) Stop(ctx context.Context) error {
+func (g *grpcServer) Stop(ctx context.Context) error {
 	ch := make(chan struct{})
 
 	go func() {
