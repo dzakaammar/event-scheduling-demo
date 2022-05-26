@@ -12,7 +12,7 @@ services:
   grpc_app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dev.Dockerfile
     profiles: ['all', 'default']
     ports:
       - "8000:8000"
@@ -21,19 +21,23 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
     depends_on:
       - postgres
+    volumes:
+      - ./:/app
     entrypoint: [ "/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh" ]
-    command: [ "/app/main" ]
+    command: [ "air", "-c", "/app/.air_grpc_app.toml" ]
   grpc_gateway:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dev.Dockerfile
     profiles: ['all', 'default']
     ports:
       - "8001:8001"
     depends_on:
       - grpc_app
-    entrypoint: [ "/app/wait-for.sh", "grpc_app:8000", "--" ]
-    command: [ "/app/main", "grpc-gateway", "--target", "grpc_app:8000" ]
+    volumes:
+      - ./:/app
+    entrypoint: [ "/app/wait-for.sh", "grpc_app:8000", "--timeout", "60", "--" ]
+    command: [ "air", "-c", "/app/.air_grpc_gateway.toml" ]
   
   #  optional
   jaeger-all-in-one:

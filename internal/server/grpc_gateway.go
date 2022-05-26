@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"embed"
+	"fmt"
 	"net/http"
 
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
@@ -58,6 +59,7 @@ func NewGRPCGatewayServer(grpcTarget string) (*GRPCGatewayServer, error) {
 
 func (g *GRPCGatewayServer) Start(address string) error {
 	g.srv.Addr = address
+	fmt.Println("grpc gateway running on ", address)
 	return g.srv.ListenAndServe()
 }
 
