@@ -17,8 +17,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DB_SOURCE=postgresql://root:secret@postgres:5432/event_schedule?sslmode=disable
-      - OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
+      - ENV_DB_SOURCE=postgresql://root:secret@postgres:5432/event_schedule?sslmode=disable
+      - ENV_GRPC_ADDRESS=0.0.0.0:8000
+      - ENV_OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
     depends_on:
       - postgres
     volumes:
@@ -32,6 +33,8 @@ services:
     profiles: ['all', 'default']
     ports:
       - "8001:8001"
+    environment:
+      - ENV_GRPC_GATEWAY_ADDRESS=0.0.0.0:8001
     depends_on:
       - grpc_app
     volumes:

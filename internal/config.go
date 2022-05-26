@@ -3,16 +3,17 @@ package internal
 import "github.com/spf13/viper"
 
 type Config struct {
-	DbSource           string `mapstructure:"DB_SOURCE"`
-	GRPCAddress        string `mapstructure:"GRPC_ADDRESS"`
-	GRPCGatewayAddress string `mapstructure:"GRPC_GATEWAY_ADDRESS"`
-	OTLPEndpoint       string `mapstructure:"OTEL_EXPORTER_OTLP_ENDPOINT"`
+	DbSource           string `mapstructure:"db_source"`
+	GRPCAddress        string `mapstructure:"grpc_address"`
+	GRPCGatewayAddress string `mapstructure:"grpc_gateway_address"`
+	OTLPEndpoint       string `mapstructure:"otel_exporter_otlp_endpoint"`
 }
 
 func LoadConfig(path string) (Config, error) {
 	viper.AddConfigPath(path)
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
+	viper.SetConfigName("config")
+	viper.SetConfigType("yaml")
+	viper.SetEnvPrefix("env")
 	viper.AutomaticEnv()
 
 	err := viper.ReadInConfig()
