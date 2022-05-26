@@ -12,7 +12,7 @@ services:
   grpc_app:
     build:
       context: .
-      dockerfile: dev.Dockerfile
+      dockerfile: ./build/local/Dockerfile
     profiles: ['all', 'default']
     ports:
       - "8000:8000"
@@ -24,12 +24,12 @@ services:
       - postgres
     volumes:
       - ./:/app
-    entrypoint: [ "/app/wait-for.sh", "postgres:5432", "--", "/app/start.sh" ]
-    command: [ "air", "-c", "/app/.air_grpc_app.toml" ]
+    entrypoint: [ "/app/bin/wait-for.sh", "postgres:5432", "--", "/app/bin/start.sh" ]
+    command: [ "air", "-c", "/app/build/local/.air_grpc_app.toml" ]
   grpc_gateway:
     build:
       context: .
-      dockerfile: dev.Dockerfile
+      dockerfile: ./build/local/Dockerfile
     profiles: ['all', 'default']
     ports:
       - "8001:8001"
@@ -39,8 +39,8 @@ services:
       - grpc_app
     volumes:
       - ./:/app
-    entrypoint: [ "/app/wait-for.sh", "grpc_app:8000", "--timeout", "60", "--" ]
-    command: [ "air", "-c", "/app/.air_grpc_gateway.toml" ]
+    entrypoint: [ "/app/bin/wait-for.sh", "grpc_app:8000", "--timeout", "60", "--" ]
+    command: [ "air", "-c", "/app/build/local/.air_grpc_gateway.toml" ]
   
   #  optional
   jaeger-all-in-one:
@@ -53,9 +53,9 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib-dev:latest
     profiles: ['all']
-    command: ["--config=/etc/otel_local.yaml", "${OTELCOL_ARGS}"]
+    command: ["--config=/etc/otel.yaml", "${OTELCOL_ARGS}"]
     volumes:
-      - ./build/otel_local.yaml:/etc/otel_local.yaml
+      - ./build/local/otel.yaml:/etc/otel.yaml
     ports:
       - "1888:1888"   # pprof extension
       - "8888:8888"   # Prometheus metrics exposed by the collector
