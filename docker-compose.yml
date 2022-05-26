@@ -35,6 +35,7 @@ services:
       - "8001:8001"
     environment:
       - ENV_GRPC_GATEWAY_ADDRESS=0.0.0.0:8001
+      - ENV_GRPC_ADDRESS=grpc_app:8000
     depends_on:
       - grpc_app
     volumes:

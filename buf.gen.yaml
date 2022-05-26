@@ -12,7 +12,7 @@ plugins:
     opt:
       - paths=source_relative
   - name: openapiv2
-    out: internal/server/gen/v1
+    out: cmd/grpc_gateway/gen/v1
     opt:
       - allow_merge=true
       - merge_file_name=openapiv2

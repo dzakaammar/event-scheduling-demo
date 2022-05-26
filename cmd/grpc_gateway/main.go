@@ -1,18 +1,61 @@
-package server
+package main
 
 import (
 	"context"
 	"embed"
+	"flag"
 	"fmt"
 	"net/http"
+	"time"
 
-	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	internalCmd "github.com/dzakaammar/event-scheduling-example/cmd/internal"
+	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
+	"github.com/dzakaammar/event-scheduling-example/internal"
 )
+
+func main() {
+	log.Fatalf("Error running grpc gateway: %v", run())
+}
+
+func run() error {
+	var grpcServerTarget string
+
+	flag.StringVar(&grpcServerTarget, "target", "", "The address of grpc server")
+	flag.Parse()
+
+	log.SetFormatter(&log.JSONFormatter{})
+
+	cfg, err := internal.LoadConfig(".")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if grpcServerTarget == "" {
+		grpcServerTarget = cfg.GRPCAddress
+	}
+
+	grpcGatewayServer, err := newGRPCGatewayServer(grpcServerTarget)
+	if err != nil {
+		panic(err)
+	}
+
+	waitForSignal := internalCmd.GracefulShutdown(func() error {
+		return grpcGatewayServer.Start(cfg.GRPCGatewayAddress)
+	})
+
+	waitForSignal()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return grpcGatewayServer.Stop(ctx)
+}
 
 var (
 	//go:embed swagger
@@ -22,11 +65,11 @@ var (
 	openAPIFile []byte
 )
 
-type GRPCGatewayServer struct {
+type gRPCGatewayServer struct {
 	srv *http.Server
 }
 
-func NewGRPCGatewayServer(grpcTarget string) (*GRPCGatewayServer, error) {
+func newGRPCGatewayServer(grpcTarget string) (*gRPCGatewayServer, error) {
 	gatewayHandler, err := grpcGatewayHandler(grpcTarget)
 	if err != nil {
 		return nil, err
@@ -50,20 +93,20 @@ func NewGRPCGatewayServer(grpcTarget string) (*GRPCGatewayServer, error) {
 		_, _ = w.Write(openAPIFile)
 	})
 
-	return &GRPCGatewayServer{
+	return &gRPCGatewayServer{
 		srv: &http.Server{
 			Handler: r,
 		},
 	}, nil
 }
 
-func (g *GRPCGatewayServer) Start(address string) error {
+func (g *gRPCGatewayServer) Start(address string) error {
 	g.srv.Addr = address
 	fmt.Println("grpc gateway running on ", address)
 	return g.srv.ListenAndServe()
 }
 
-func (g *GRPCGatewayServer) Stop(ctx context.Context) error {
+func (g *gRPCGatewayServer) Stop(ctx context.Context) error {
 	return g.srv.Shutdown(ctx)
 }
 
