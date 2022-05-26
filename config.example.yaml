@@ -1,0 +1,4 @@
+db_source: ENV_DB_SOURCE
+grpc_address: ENV_GRPC_ADDRESS
+grpc_gateway_address: ENV_GRPC_GATEWAY_ADDRESS
+otel_exporter_otlp_endpoint: ENV_OTEL_EXPORTER_OTLP_ENDPOINT

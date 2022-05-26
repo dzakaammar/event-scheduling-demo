@@ -2,3 +2,4 @@ app
 cover.out
 .vscode
 tmp
+config.yaml
