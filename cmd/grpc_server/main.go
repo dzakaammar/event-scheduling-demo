@@ -16,15 +16,14 @@ import (
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_logrus "github.com/grpc-ecosystem/go-grpc-middleware/logging/logrus"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	"github.com/sirupsen/logrus"
+	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jmoiron/sqlx"
 	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -45,12 +44,13 @@ func run() error {
 	}
 	otel.SetTracerProvider(tp)
 
-	dbConn, err := gorm.Open(postgres.New(postgres.Config{
-		DSN: cfg.DbSource,
-	}))
+	dbConn, err := sqlx.Open("pgx", cfg.DbSource)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer func() {
+		_ = dbConn.Close()
+	}()
 
 	var repo core.EventRepository
 	{
@@ -83,13 +83,13 @@ type grpcServer struct {
 }
 
 func newGRPCServer(endpoint v1.APIServer) *grpcServer {
-	logger := logrus.New()
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.Level = logrus.ErrorLevel
+	logger := log.New()
+	logger.SetFormatter(&log.JSONFormatter{})
+	logger.Level = log.ErrorLevel
 
-	logrusEntry := logrus.NewEntry(logger)
+	logrusEntry := log.NewEntry(logger)
 	opts := []grpc_logrus.Option{
-		grpc_logrus.WithLevels(func(code codes.Code) logrus.Level {
+		grpc_logrus.WithLevels(func(code codes.Code) log.Level {
 			switch code {
 			case codes.DeadlineExceeded,
 				codes.Unimplemented,
@@ -97,9 +97,9 @@ func newGRPCServer(endpoint v1.APIServer) *grpcServer {
 				codes.ResourceExhausted,
 				codes.Unavailable,
 				codes.Internal:
-				return logrus.ErrorLevel
+				return log.ErrorLevel
 			default:
-				return logrus.DebugLevel
+				return log.DebugLevel
 			}
 		}),
 	}

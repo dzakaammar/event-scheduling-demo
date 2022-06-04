@@ -27,17 +27,13 @@ func (r RecurringType) interval() int64 {
 }
 
 type Schedule struct {
-	ID                string        `validate:"required" gorm:"primaryKey"`
-	EventID           string        `validate:"required"`
-	StartTime         int64         `validate:"required"`
-	Duration          time.Duration `validate:"required"`
-	IsFullDay         bool
-	RecurringType     RecurringType
-	RecurringInterval int64
-}
-
-func (s *Schedule) TableName() string {
-	return "schedule"
+	ID                string        `validate:"required" db:"id"`
+	EventID           string        `validate:"required" db:"event_id"`
+	StartTime         int64         `validate:"required" db:"start_time"`
+	Duration          time.Duration `validate:"required" db:"duration"`
+	IsFullDay         bool          `db:"is_full_day"`
+	RecurringType     RecurringType `db:"recurring_type"`
+	RecurringInterval int64         `db:"recurring_interval"`
 }
 
 func (s *Schedule) StartTimeIn(loc string) (time.Time, error) {
