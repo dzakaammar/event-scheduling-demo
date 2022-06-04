@@ -9,18 +9,14 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
+	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 )
 
 func TestNewEventRepository(t *testing.T) {
 	db, _, _ := sqlmock.New()
-	conn, _ := gorm.Open(postgres.New(postgres.Config{
-		Conn: db,
-	}))
 	type args struct {
-		db *gorm.DB
+		db *sqlx.DB
 	}
 	tests := []struct {
 		name string
@@ -29,7 +25,7 @@ func TestNewEventRepository(t *testing.T) {
 		{
 			name: "OK",
 			args: args{
-				db: conn,
+				db: sqlx.NewDb(db, "postgres"),
 			},
 		},
 	}
@@ -43,7 +39,7 @@ func TestNewEventRepository(t *testing.T) {
 
 func TestEventRepository_Store(t *testing.T) {
 	type fields struct {
-		dbMock func(t *testing.T) *gorm.DB
+		dbMock func(t *testing.T) *sqlx.DB
 	}
 	type args struct {
 		ctx   context.Context
@@ -58,17 +54,14 @@ func TestEventRepository_Store(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
 
 					mock.ExpectBegin()
-					mock.ExpectExec(`INSERT INTO "event"`).WillReturnResult(sqlmock.NewResult(1, 1))
+					mock.ExpectExec(`INSERT INTO event`).WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.ExpectCommit()
 					mock.MatchExpectationsInOrder(true)
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{
@@ -84,17 +77,13 @@ func TestEventRepository_Store(t *testing.T) {
 		{
 			name: "Not OK - error",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
-
 					mock.ExpectBegin()
-					mock.ExpectExec(`INSERT INTO "event"`).WillReturnError(errors.New("error"))
+					mock.ExpectExec(`INSERT INTO event`).WillReturnError(errors.New("error"))
 					mock.ExpectRollback()
 					mock.MatchExpectationsInOrder(true)
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{
@@ -124,7 +113,7 @@ func TestEventRepository_Store(t *testing.T) {
 
 func TestEventRepository_DeleteByID(t *testing.T) {
 	type fields struct {
-		dbMock func(t *testing.T) *gorm.DB
+		dbMock func(t *testing.T) *sqlx.DB
 	}
 	type args struct {
 		ctx context.Context
@@ -139,18 +128,12 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
-
-					mock.ExpectBegin()
-					mock.ExpectExec(`DELETE FROM "event"`).WillReturnResult(sqlmock.NewResult(1, 1))
-					mock.ExpectCommit()
+					mock.ExpectExec(`DELETE FROM event`).WithArgs("test123").WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.MatchExpectationsInOrder(true)
 
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{
@@ -161,18 +144,13 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 		{
 			name: "Not OK - error",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
 
-					mock.ExpectBegin()
-					mock.ExpectExec(`DELETE FROM "event"`).WillReturnError(errors.New("error"))
-					mock.ExpectRollback()
+					mock.ExpectExec(`DELETE FROM event`).WithArgs("test123").WillReturnError(errors.New("error"))
 					mock.MatchExpectationsInOrder(true)
 
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{
@@ -197,7 +175,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 
 func TestEventRepository_Update(t *testing.T) {
 	type fields struct {
-		dbMock func(t *testing.T) *gorm.DB
+		dbMock func(t *testing.T) *sqlx.DB
 	}
 	type args struct {
 		ctx   context.Context
@@ -212,20 +190,17 @@ func TestEventRepository_Update(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
 
 					mock.ExpectBegin()
-					mock.ExpectExec(`UPDATE "event" SET`).WillReturnResult(sqlmock.NewResult(1, 1))
-					mock.ExpectExec(`INSERT INTO "schedule"`).WillReturnResult(sqlmock.NewResult(1, 1))
-					mock.ExpectExec(`INSERT INTO "invitation"`).WillReturnResult(sqlmock.NewResult(1, 1))
+					mock.ExpectExec(`UPDATE event SET`).WillReturnResult(sqlmock.NewResult(1, 1))
+					mock.ExpectExec(`INSERT INTO schedule`).WillReturnResult(sqlmock.NewResult(1, 1))
+					mock.ExpectExec(`INSERT INTO invitation`).WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.ExpectCommit()
 					mock.MatchExpectationsInOrder(true)
 
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{
@@ -258,20 +233,17 @@ func TestEventRepository_Update(t *testing.T) {
 		{
 			name: "Not OK - error",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
 
 					mock.ExpectBegin()
-					mock.ExpectExec(`UPDATE "event" SET`).WillReturnResult(sqlmock.NewResult(1, 1))
-					mock.ExpectExec(`INSERT INTO "schedule"`).WillReturnResult(sqlmock.NewResult(1, 1))
-					mock.ExpectExec(`INSERT INTO "invitation"`).WillReturnError(errors.New("error"))
+					mock.ExpectExec(`UPDATE event SET`).WillReturnResult(sqlmock.NewResult(1, 1))
+					mock.ExpectExec(`INSERT INTO schedule`).WillReturnResult(sqlmock.NewResult(1, 1))
+					mock.ExpectExec(`INSERT INTO invitation`).WillReturnError(errors.New("error"))
 					mock.ExpectRollback()
 					mock.MatchExpectationsInOrder(true)
 
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{
@@ -318,7 +290,7 @@ func TestEventRepository_Update(t *testing.T) {
 
 func TestEventRepository_FindByID(t *testing.T) {
 	type fields struct {
-		dbMock func(t *testing.T) *gorm.DB
+		dbMock func(t *testing.T) *sqlx.DB
 	}
 	type args struct {
 		ctx context.Context
@@ -334,18 +306,15 @@ func TestEventRepository_FindByID(t *testing.T) {
 		{
 			name: "OK",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
 
-					mock.ExpectQuery(`^SELECT .+ FROM "event"`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("123"))
-					mock.ExpectQuery(`^SELECT .+ FROM "invitation"`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
-					mock.ExpectQuery(`^SELECT .+ FROM "schedule"`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
+					mock.ExpectQuery(`^SELECT .+ FROM event`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("123"))
+					mock.ExpectQuery(`^SELECT .+ FROM schedule`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
+					mock.ExpectQuery(`^SELECT .+ FROM invitation`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
 					mock.MatchExpectationsInOrder(true)
 
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{
@@ -354,23 +323,20 @@ func TestEventRepository_FindByID(t *testing.T) {
 			},
 			want: &core.Event{
 				ID:          "123",
-				Invitations: []core.Invitation{},
-				Schedules:   []core.Schedule{},
+				Invitations: []core.Invitation(nil),
+				Schedules:   []core.Schedule(nil),
 			},
 		},
 		{
 			name: "Not OK - error",
 			fields: fields{
-				dbMock: func(t *testing.T) *gorm.DB {
+				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
-					g, _ := gorm.Open(postgres.New(postgres.Config{
-						Conn: db,
-					}))
 
-					mock.ExpectQuery(`^SELECT .+ FROM "event"`).WithArgs("123").WillReturnError(errors.New("error"))
+					mock.ExpectQuery(`^SELECT .+ FROM event`).WithArgs("123").WillReturnError(errors.New("error"))
 					mock.MatchExpectationsInOrder(true)
 
-					return g
+					return sqlx.NewDb(db, "postgres")
 				},
 			},
 			args: args{

@@ -16,19 +16,16 @@ func init() {
 }
 
 type Event struct {
-	ID          string       `validate:"required" gorm:"primaryKey"`
-	Title       string       `validate:"required"`
-	Description string       `validate:"required"`
-	Timezone    string       `validate:"required"`
-	Schedules   []Schedule   `validate:"required,dive,required" gorm:"foreignKey:EventID"`
-	Invitations []Invitation `validate:"dive" gorm:"foreignKey:EventID"`
-	CreatedBy   string       `gorm:"<-:create"`
-	CreatedAt   time.Time    `gorm:"<-:create"`
-	UpdatedAt   *time.Time
-}
+	ID          string     `validate:"required" db:"id"`
+	Title       string     `validate:"required" db:"title"`
+	Description string     `validate:"required" db:"description"`
+	Timezone    string     `validate:"required" db:"timezone"`
+	CreatedBy   string     `db:"created_by"`
+	CreatedAt   time.Time  `db:"created_at"`
+	UpdatedAt   *time.Time `db:"updated_at"`
 
-func (e *Event) TableName() string {
-	return "event"
+	Schedules   []Schedule   `validate:"required,dive,required"`
+	Invitations []Invitation `validate:"dive"`
 }
 
 func (e *Event) Validate() error {

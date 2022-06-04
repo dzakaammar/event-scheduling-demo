@@ -2,6 +2,7 @@ package core
 
 import (
 	"encoding/base64"
+	"time"
 
 	"github.com/satori/uuid"
 )
@@ -15,15 +16,12 @@ const (
 )
 
 type Invitation struct {
-	ID      string `validate:"required" gorm:"primaryKey"`
-	EventID string `validate:"required"`
-	UserID  string `validate:"required"`
-	Status  InvitationStatus
-	Token   string `validate:"required"`
-}
-
-func (i *Invitation) TableName() string {
-	return "invitation"
+	ID        string           `validate:"required" db:"id"`
+	EventID   string           `validate:"required" db:"event_id"`
+	UserID    string           `validate:"required" db:"user_id"`
+	Status    InvitationStatus `db:"status"`
+	Token     string           `validate:"required" db:"token"`
+	UpdatedAt *time.Time       `db:"updated_at"`
 }
 
 func NewInvitation(eventID string, userID string) Invitation {
