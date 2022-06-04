@@ -7,17 +7,17 @@ import (
 	"github.com/dzakaammar/event-scheduling-example/internal/core"
 )
 
-type EventService struct {
+type Service struct {
 	eventRepo core.EventRepository
 }
 
-func NewEventService(eventRepo core.EventRepository) *EventService {
-	return &EventService{
+func NewService(eventRepo core.EventRepository) *Service {
+	return &Service{
 		eventRepo: eventRepo,
 	}
 }
 
-func (e *EventService) CreateEvent(ctx context.Context, req *core.CreateEventRequest) error {
+func (e *Service) CreateEvent(ctx context.Context, req *core.CreateEventRequest) error {
 	err := req.Validate()
 	if err != nil {
 		return err
@@ -30,8 +30,13 @@ func (e *EventService) CreateEvent(ctx context.Context, req *core.CreateEventReq
 	return nil
 }
 
-func (e *EventService) DeleteEventByID(ctx context.Context, req *core.DeleteEventByIDRequest) error {
+func (e *Service) DeleteEventByID(ctx context.Context, req *core.DeleteEventByIDRequest) error {
 	err := req.Validate()
+	if err != nil {
+		return err
+	}
+
+	_, err = e.eventRepo.FindByID(ctx, req.EventID)
 	if err != nil {
 		return err
 	}
@@ -43,7 +48,7 @@ func (e *EventService) DeleteEventByID(ctx context.Context, req *core.DeleteEven
 	return nil
 }
 
-func (e *EventService) UpdateEvent(ctx context.Context, req *core.UpdateEventRequest) error {
+func (e *Service) UpdateEvent(ctx context.Context, req *core.UpdateEventRequest) error {
 	err := req.Validate()
 	if err != nil {
 		return err
@@ -59,7 +64,7 @@ func (e *EventService) UpdateEvent(ctx context.Context, req *core.UpdateEventReq
 	return nil
 }
 
-func (e *EventService) FindEventByID(ctx context.Context, req *core.FindEventByIDRequest) (*core.Event, error) {
+func (e *Service) FindEventByID(ctx context.Context, req *core.FindEventByIDRequest) (*core.Event, error) {
 	err := req.Validate()
 	if err != nil {
 		return nil, err

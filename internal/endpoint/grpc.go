@@ -115,11 +115,10 @@ func parseCreateEventRequest(ctx context.Context, req *v1.CreateEventRequest) (*
 
 	actorID := extractAuthorization(ctx)
 
-	event := core.NewEvent()
+	event := core.NewEvent(actorID)
 	event.Title = req.GetEvent().GetTitle()
 	event.Description = req.GetEvent().GetDescription()
 	event.Timezone = req.GetEvent().GetTimezone()
-	event.CreatedBy = actorID
 	event.CreatedAt = time.Now()
 
 	sch, err := parseSchedules(req.GetEvent().GetSchedule(), event.ID)

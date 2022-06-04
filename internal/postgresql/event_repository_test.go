@@ -25,7 +25,7 @@ func TestNewEventRepository(t *testing.T) {
 		{
 			name: "OK",
 			args: args{
-				db: sqlx.NewDb(db, "postgres"),
+				db: sqlx.NewDb(db, "pgx"),
 			},
 		},
 	}
@@ -61,7 +61,7 @@ func TestEventRepository_Store(t *testing.T) {
 					mock.ExpectExec(`INSERT INTO event`).WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.ExpectCommit()
 					mock.MatchExpectationsInOrder(true)
-					return sqlx.NewDb(db, "postgres")
+					return sqlx.NewDb(db, "pgx")
 				},
 			},
 			args: args{
@@ -83,7 +83,7 @@ func TestEventRepository_Store(t *testing.T) {
 					mock.ExpectExec(`INSERT INTO event`).WillReturnError(errors.New("error"))
 					mock.ExpectRollback()
 					mock.MatchExpectationsInOrder(true)
-					return sqlx.NewDb(db, "postgres")
+					return sqlx.NewDb(db, "pgx")
 				},
 			},
 			args: args{
@@ -133,7 +133,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 					mock.ExpectExec(`DELETE FROM event`).WithArgs("test123").WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.MatchExpectationsInOrder(true)
 
-					return sqlx.NewDb(db, "postgres")
+					return sqlx.NewDb(db, "pgx")
 				},
 			},
 			args: args{
@@ -200,7 +200,7 @@ func TestEventRepository_Update(t *testing.T) {
 					mock.ExpectCommit()
 					mock.MatchExpectationsInOrder(true)
 
-					return sqlx.NewDb(db, "postgres")
+					return sqlx.NewDb(db, "pgx")
 				},
 			},
 			args: args{
@@ -243,7 +243,7 @@ func TestEventRepository_Update(t *testing.T) {
 					mock.ExpectRollback()
 					mock.MatchExpectationsInOrder(true)
 
-					return sqlx.NewDb(db, "postgres")
+					return sqlx.NewDb(db, "pgx")
 				},
 			},
 			args: args{
@@ -314,7 +314,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 					mock.ExpectQuery(`^SELECT .+ FROM invitation`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
 					mock.MatchExpectationsInOrder(true)
 
-					return sqlx.NewDb(db, "postgres")
+					return sqlx.NewDb(db, "pgx")
 				},
 			},
 			args: args{
@@ -336,7 +336,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 					mock.ExpectQuery(`^SELECT .+ FROM event`).WithArgs("123").WillReturnError(errors.New("error"))
 					mock.MatchExpectationsInOrder(true)
 
-					return sqlx.NewDb(db, "postgres")
+					return sqlx.NewDb(db, "pgx")
 				},
 			},
 			args: args{

@@ -44,10 +44,11 @@ func (e *Event) GetUpdatedAt() string {
 	return e.UpdatedAt.Format(time.RFC3339)
 }
 
-func NewEvent() *Event {
+func NewEvent(createdBy string) *Event {
 	return &Event{
 		ID:        uuid.NewV4().String(),
 		CreatedAt: time.Now(),
+		CreatedBy: createdBy,
 	}
 }
 

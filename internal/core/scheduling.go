@@ -20,6 +20,10 @@ func (c *CreateEventRequest) Validate() error {
 		return internal.WrapErr(internal.ErrValidationFailed, "invalid event")
 	}
 
+	if len(c.Event.Schedules) <= 0 {
+		return internal.WrapErr(internal.ErrValidationFailed, "no schedules provided for the event")
+	}
+
 	return c.Event.Validate()
 }
 
