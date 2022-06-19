@@ -42,6 +42,7 @@ func run() error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	otel.SetTracerProvider(tp)
 
 	dbConn, err := sqlx.Open("pgx", cfg.DbSource)
@@ -123,7 +124,7 @@ func newGRPCServer(endpoint v1.APIServer) *grpcServer {
 func (g *grpcServer) Start(address string) error {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
-		return fmt.Errorf("failed to listen: %v", err)
+		return fmt.Errorf("failed to listen: %w", err)
 	}
 
 	fmt.Println("grpc server is running on ", address)

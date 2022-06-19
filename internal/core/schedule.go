@@ -1,11 +1,13 @@
 package core
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/satori/uuid"
 )
+
+var ErrInvalidTimezone = errors.New("invalid timezone")
 
 type RecurringType string
 
@@ -30,22 +32,18 @@ type Schedule struct {
 	ID                string        `validate:"required" db:"id"`
 	EventID           string        `validate:"required" db:"event_id"`
 	StartTime         int64         `validate:"required" db:"start_time"`
-	Duration          time.Duration `validate:"required" db:"duration"`
+	DurationInMinutes int64         `validate:"required" db:"duration"`
 	IsFullDay         bool          `db:"is_full_day"`
 	RecurringType     RecurringType `db:"recurring_type"`
 	RecurringInterval int64         `db:"recurring_interval"`
 }
 
 func (s *Schedule) StartTimeIn(loc string) (time.Time, error) {
-	l, err := time.LoadLocation(loc)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("invalid timezone: %s", loc)
-	}
-	return time.Unix(s.StartTime, 0).In(l), nil
+	return time.Unix(s.StartTime, 0).In(time.UTC), nil
 }
 
 func (s *Schedule) EndTimeFrom(st time.Time) time.Time {
-	return st.Add(s.Duration * time.Minute)
+	return st.Add(time.Duration(s.DurationInMinutes) * time.Minute)
 }
 
 func NewSchedule(eventID string, start, end string, isFullDay bool, rt RecurringType) (Schedule, error) {
@@ -60,12 +58,12 @@ func NewSchedule(eventID string, start, end string, isFullDay bool, rt Recurring
 	}
 
 	s := Schedule{
-		ID:            uuid.NewV4().String(),
-		EventID:       eventID,
-		StartTime:     startTime.UTC().Unix(),
-		Duration:      time.Duration(endTime.UTC().Sub(startTime.UTC()).Minutes()),
-		IsFullDay:     isFullDay,
-		RecurringType: rt,
+		ID:                uuid.NewV4().String(),
+		EventID:           eventID,
+		StartTime:         startTime.UTC().Unix(),
+		DurationInMinutes: int64(endTime.UTC().Sub(startTime.UTC()).Minutes()),
+		IsFullDay:         isFullDay,
+		RecurringType:     rt,
 	}
 	s.RecurringInterval = rt.interval()
 

@@ -1,0 +1,57 @@
+# Options for analysis running.
+run:
+  timeout: 1m
+  tests: true
+  skip-dirs:
+    - sql
+    - proto
+    - gen
+    - build
+    - bin
+    - cmd/grpc_gateway/gen
+    - internal/mock
+  skip-dirs-use-default: true
+  go: "1.18"
+# output configuration options
+output:
+  sort-results: true
+linters:
+  disable:
+    - gci
+    - exhaustive
+    - scopelint
+    - exhaustivestruct
+    - exhaustruct
+    - paralleltest
+    - wrapcheck
+    - forbidigo
+    - gochecknoglobals
+  enable:
+    - gocyclo
+  presets:
+    - bugs
+    - unused
+    - test
+    - import
+    - error
+    - performance
+    # - style
+    - format
+    - comment
+    - complexity
+linters-settings:
+  gocyclo:
+    min-complexity: 10
+  gocognit:
+    min-complexity: 10
+issues:
+  # Excluding configuration per-path, per-linter, per-text and per-source
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen

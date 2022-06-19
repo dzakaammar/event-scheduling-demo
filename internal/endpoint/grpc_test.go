@@ -407,7 +407,7 @@ func TestGRPCEndpoint_FindEventByID(t *testing.T) {
 								ID:                "sch1",
 								EventID:           "test123",
 								StartTime:         time.Date(2022, 0o1, 0o1, 0o0, 0o0, 0o0, 0o0, time.UTC).Unix(),
-								Duration:          120,
+								DurationInMinutes: 120,
 								IsFullDay:         false,
 								RecurringType:     core.RecurringType_None,
 								RecurringInterval: 0,
@@ -446,8 +446,8 @@ func TestGRPCEndpoint_FindEventByID(t *testing.T) {
 					Schedule: []*v1.Schedule{
 						{
 							Id:            "sch1",
-							StartTime:     "2022-01-01T07:00:00+07:00",
-							EndTime:       "2022-01-01T09:00:00+07:00",
+							StartTime:     "2022-01-01T00:00:00Z",
+							EndTime:       "2022-01-01T02:00:00Z",
 							IsFullDay:     false,
 							RecurringType: v1.RecurringType_NONE,
 						},

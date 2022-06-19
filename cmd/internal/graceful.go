@@ -1,13 +1,15 @@
 package internal
 
 import (
-	"fmt"
+	"errors"
 	"os"
 	"os/signal"
 	"syscall"
 
 	log "github.com/sirupsen/logrus"
 )
+
+var ErrInterrupted = errors.New("interrupted")
 
 func GracefulShutdown(fn func() error) func() {
 	sigCh := make(chan os.Signal, 1)
@@ -23,7 +25,7 @@ func GracefulShutdown(fn func() error) func() {
 
 	go func() {
 		<-sigCh
-		errCh <- fmt.Errorf("interrupted")
+		errCh <- ErrInterrupted
 	}()
 
 	return func() {

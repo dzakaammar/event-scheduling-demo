@@ -46,7 +46,7 @@ func (e *EventRepository) Store(ctx context.Context, event *core.Event) error {
 
 	createScheduleSql := "INSERT INTO schedule (id, event_id, start_time, duration, is_full_day, recurring_interval, recurring_type) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 	for _, schedule := range event.Schedules {
-		_, err = tx.ExecContext(ctx, createScheduleSql, schedule.ID, event.ID, schedule.StartTime, schedule.Duration, schedule.IsFullDay, schedule.RecurringInterval, schedule.RecurringType)
+		_, err = tx.ExecContext(ctx, createScheduleSql, schedule.ID, event.ID, schedule.StartTime, schedule.DurationInMinutes, schedule.IsFullDay, schedule.RecurringInterval, schedule.RecurringType)
 		if err != nil {
 			log.Error(err)
 			return err
@@ -102,7 +102,7 @@ func (e *EventRepository) Update(ctx context.Context, event *core.Event) error {
 						ON CONFLICT (id, event_id)
 						DO UPDATE SET start_time = $3, duration = $4, recurring_interval = $5, recurring_type = $6`
 	for _, schedule := range event.Schedules {
-		_, err = tx.ExecContext(ctx, upsertScheduleSql, schedule.ID, event.ID, schedule.StartTime, schedule.Duration, schedule.IsFullDay, schedule.RecurringInterval, schedule.RecurringType)
+		_, err = tx.ExecContext(ctx, upsertScheduleSql, schedule.ID, event.ID, schedule.StartTime, schedule.DurationInMinutes, schedule.IsFullDay, schedule.RecurringInterval, schedule.RecurringType)
 		if err != nil {
 			log.Error(err)
 		}
