@@ -14,8 +14,8 @@ import (
 )
 
 type GRPCEndpoint struct {
-	svc core.SchedulingService
 	v1.UnimplementedAPIServer
+	svc core.SchedulingService
 }
 
 func NewGRPCEndpoint(svc core.SchedulingService) *GRPCEndpoint {
@@ -176,8 +176,8 @@ func parseUpdateEventByIDRequest(ctx context.Context, req *v1.UpdateEventRequest
 }
 
 func parseSchedules(sch []*v1.Schedule, eventID string) ([]core.Schedule, error) {
-	var schedules []core.Schedule
-	for _, sch := range sch {
+	schedules := make([]core.Schedule, len(sch))
+	for index, sch := range sch {
 		s, err := core.NewSchedule(
 			eventID,
 			sch.GetStartTime(),
@@ -188,16 +188,16 @@ func parseSchedules(sch []*v1.Schedule, eventID string) ([]core.Schedule, error)
 		if err != nil {
 			return nil, status.Error(codes.InvalidArgument, err.Error())
 		}
-		schedules = append(schedules, s)
+		schedules[index] = s
 	}
 	return schedules, nil
 }
 
 func parseInvitations(attendees []string, eventID string) []core.Invitation {
-	var invitations []core.Invitation
-	for _, userID := range attendees {
+	invitations := make([]core.Invitation, len(attendees))
+	for index, userID := range attendees {
 		i := core.NewInvitation(eventID, userID)
-		invitations = append(invitations, i)
+		invitations[index] = i
 	}
 	return invitations
 }
@@ -213,8 +213,8 @@ func parseEventToPB(event *core.Event) (*v1.Event, error) {
 		LastUpdatedAt: event.GetUpdatedAt(),
 	}
 
-	var schedules []*v1.Schedule
-	for _, sch := range event.Schedules {
+	schedules := make([]*v1.Schedule, len(event.Schedules))
+	for index, sch := range event.Schedules {
 		st, err := sch.StartTimeIn(event.Timezone)
 		if err != nil {
 			return nil, err
@@ -227,13 +227,13 @@ func parseEventToPB(event *core.Event) (*v1.Event, error) {
 			IsFullDay:     sch.IsFullDay,
 			RecurringType: mapRecurringTypeToPB(sch.RecurringType),
 		}
-		schedules = append(schedules, s)
+		schedules[index] = s
 	}
 	e.Schedule = schedules
 
-	var attendees []string
-	for _, inv := range event.Invitations {
-		attendees = append(attendees, inv.UserID)
+	attendees := make([]string, len(event.Invitations))
+	for index, inv := range event.Invitations {
+		attendees[index] = inv.UserID
 	}
 	e.Attendees = attendees
 
