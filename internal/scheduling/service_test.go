@@ -2,6 +2,7 @@ package scheduling_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -33,7 +34,7 @@ func TestNewEventService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := scheduling.NewEventService(tt.args.eventRepo)
+			got := scheduling.NewService(tt.args.eventRepo)
 			assert.NotNil(t, got)
 		})
 	}
@@ -181,7 +182,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewService(tt.fields.eventRepoMock(ctrl))
 			err := e.CreateEvent(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -211,6 +212,8 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 			fields: fields{
 				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
+					repo.EXPECT().FindByID(gomock.Any(), gomock.Any()).Times(1).
+						Return(&core.Event{}, nil)
 					repo.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).Times(1).
 						Return(nil)
 					return repo
@@ -226,10 +229,31 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "Not OK - data not found",
+			fields: fields{
+				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
+					repo := mock.NewMockEventRepository(ctrl)
+					repo.EXPECT().FindByID(gomock.Any(), gomock.Any()).Times(1).
+						Return(nil, errors.New("data not found")) //nolint:goerr113
+					return repo
+				},
+			},
+			args: args{
+				ctx: context.Background(),
+				req: &core.DeleteEventByIDRequest{
+					ActorID: "test123",
+					EventID: "123",
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "Not OK - error from repo",
 			fields: fields{
 				eventRepoMock: func(ctrl *gomock.Controller) core.EventRepository {
 					repo := mock.NewMockEventRepository(ctrl)
+					repo.EXPECT().FindByID(gomock.Any(), gomock.Any()).Times(1).
+						Return(&core.Event{}, nil)
 					repo.EXPECT().DeleteByID(gomock.Any(), gomock.Any()).Times(1).
 						Return(internal.ErrInvalidRequest)
 					return repo
@@ -267,7 +291,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewService(tt.fields.eventRepoMock(ctrl))
 			err := e.DeleteEventByID(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -419,7 +443,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewService(tt.fields.eventRepoMock(ctrl))
 			err := e.UpdateEvent(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)
@@ -568,7 +592,7 @@ func TestEventService_FindEventByID(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			e := scheduling.NewEventService(tt.fields.eventRepoMock(ctrl))
+			e := scheduling.NewService(tt.fields.eventRepoMock(ctrl))
 			got, err := e.FindEventByID(tt.args.ctx, tt.args.req)
 			if tt.wantErr {
 				assert.Error(t, err)

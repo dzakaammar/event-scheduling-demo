@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	internalCmd "github.com/dzakaammar/event-scheduling-example/cmd/internal"
+	"github.com/dzakaammar/event-scheduling-example/cmd/pkg"
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
 	"github.com/dzakaammar/event-scheduling-example/internal"
 )
@@ -46,7 +46,7 @@ func run() error {
 		panic(err)
 	}
 
-	waitForSignal := internalCmd.GracefulShutdown(func() error {
+	waitForSignal := pkg.GracefulShutdown(func() error {
 		return grpcGatewayServer.Start(cfg.GRPCGatewayAddress)
 	})
 

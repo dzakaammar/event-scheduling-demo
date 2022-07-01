@@ -32,8 +32,8 @@ func (e *EventRepository) Store(ctx context.Context, event *core.Event) error {
 	}
 	defer func() {
 		rollbackErr := tx.Rollback()
-		if rollbackErr != nil {
-			log.Error(err)
+		if rollbackErr != sql.ErrTxDone {
+			log.Error(rollbackErr)
 		}
 	}()
 
@@ -86,8 +86,8 @@ func (e *EventRepository) Update(ctx context.Context, event *core.Event) error {
 	}
 	defer func() {
 		rollbackErr := tx.Rollback()
-		if rollbackErr != nil {
-			log.Error(err)
+		if rollbackErr != sql.ErrTxDone {
+			log.Error(rollbackErr)
 		}
 	}()
 
