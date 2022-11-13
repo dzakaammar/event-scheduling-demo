@@ -1,6 +1,6 @@
 module github.com/dzakaammar/event-scheduling-example
 
-go 1.18
+go 1.19
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
