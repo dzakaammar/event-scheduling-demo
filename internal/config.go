@@ -18,7 +18,7 @@ func LoadConfig(path string) (Config, error) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		return Config{}, nil
+		return Config{}, err
 	}
 
 	var cfg Config

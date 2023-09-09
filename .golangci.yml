@@ -26,6 +26,9 @@ linters:
     - wrapcheck
     - forbidigo
     - gochecknoglobals
+    - depguard
+    - tagalign
+    - musttag
   enable:
     - gocyclo
   presets:

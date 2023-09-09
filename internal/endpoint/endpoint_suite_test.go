@@ -4,7 +4,6 @@ package endpoint_test
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"testing"
@@ -12,13 +11,12 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
-	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -39,7 +37,6 @@ func TestMain(m *testing.M) {
 
 	migrateDB()
 
-	logrus.SetOutput(io.Discard)
 	code := m.Run()
 
 	if err := pool.Purge(postgresResource); err != nil {

@@ -21,7 +21,7 @@ message Event {
     string description = 3;
 
     // attendees is the attendees of the event, multiple of user id
-    repeated string attendees = 4;
+    repeated int32 attendees = 4;
 
     // Schedules is schedules of the event. An event can has multiple schedule
     repeated Schedule schedule = 5;

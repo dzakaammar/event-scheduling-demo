@@ -16,4 +16,3 @@ plugins:
     opt:
       - allow_merge=true
       - merge_file_name=openapiv2
-      - output_format=yaml

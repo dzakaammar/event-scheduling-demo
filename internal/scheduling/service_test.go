@@ -358,7 +358,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 							{
 								ID:      "inv1",
 								EventID: "test123",
-								UserID:  "2",
+								UserID:  2,
 								Status:  core.InvitationStatus_Confirmed,
 								Token:   "123",
 							},
@@ -409,7 +409,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 							{
 								ID:      "inv1",
 								EventID: "test123",
-								UserID:  "2",
+								UserID:  2,
 								Status:  core.InvitationStatus_Confirmed,
 								Token:   "123",
 							},
@@ -494,14 +494,14 @@ func TestEventService_FindEventByID(t *testing.T) {
 								{
 									ID:      "invitation1",
 									EventID: "123",
-									UserID:  "2",
+									UserID:  2,
 									Status:  core.InvitationStatus_Unknown,
 									Token:   "123",
 								},
 								{
 									ID:      "invitation2",
 									EventID: "123",
-									UserID:  "3",
+									UserID:  3,
 									Status:  core.InvitationStatus_Unknown,
 									Token:   "123",
 								},
@@ -535,14 +535,14 @@ func TestEventService_FindEventByID(t *testing.T) {
 					{
 						ID:      "invitation1",
 						EventID: "123",
-						UserID:  "2",
+						UserID:  2,
 						Status:  core.InvitationStatus_Unknown,
 						Token:   "123",
 					},
 					{
 						ID:      "invitation2",
 						EventID: "123",
-						UserID:  "3",
+						UserID:  3,
 						Status:  core.InvitationStatus_Unknown,
 						Token:   "123",
 					},

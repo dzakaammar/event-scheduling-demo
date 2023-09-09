@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"log"
+	"log/slog"
+	"os"
 	"time"
 
 	"github.com/dzakaammar/event-scheduling-example/cmd/pkg"
@@ -9,9 +12,8 @@ import (
 	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
 	"github.com/dzakaammar/event-scheduling-example/internal/scheduling"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	log "github.com/sirupsen/logrus"
 	"go.opentelemetry.io/otel"
 )
 
@@ -20,8 +22,11 @@ func main() {
 }
 
 func run() error {
-	log.SetFormatter(&log.JSONFormatter{})
-	log.SetLevel(log.ErrorLevel)
+	slogHandler := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelInfo,
+	}))
+	slog.SetDefault(slogHandler)
 
 	cfg, err := internal.LoadConfig(".")
 	if err != nil {

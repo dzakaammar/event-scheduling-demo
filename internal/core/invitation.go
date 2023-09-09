@@ -18,13 +18,13 @@ const (
 type Invitation struct {
 	ID        string           `validate:"required" db:"id"`
 	EventID   string           `validate:"required" db:"event_id"`
-	UserID    string           `validate:"required" db:"user_id"`
+	UserID    int32            `validate:"required" db:"user_id"`
 	Status    InvitationStatus `db:"status"`
 	Token     string           `validate:"required" db:"token"`
 	UpdatedAt *time.Time       `db:"updated_at"`
 }
 
-func NewInvitation(eventID string, userID string) Invitation {
+func NewInvitation(eventID string, userID int32) Invitation {
 	id := uuid.NewV4().String()
 	return Invitation{
 		ID:      id,

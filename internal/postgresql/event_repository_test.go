@@ -80,7 +80,7 @@ func TestEventRepository_Store(t *testing.T) {
 				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
 					mock.ExpectBegin()
-					mock.ExpectExec(`INSERT INTO event`).WillReturnError(errors.New("error"))
+					mock.ExpectExec(`INSERT INTO event`).WillReturnError(errors.New("error")) //nolint:goerr113
 					mock.ExpectRollback()
 					mock.MatchExpectationsInOrder(true)
 					return sqlx.NewDb(db, "pgx")
@@ -147,7 +147,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
 
-					mock.ExpectExec(`DELETE FROM event`).WithArgs("test123").WillReturnError(errors.New("error"))
+					mock.ExpectExec(`DELETE FROM event`).WithArgs("test123").WillReturnError(errors.New("error")) //nolint:goerr113
 					mock.MatchExpectationsInOrder(true)
 
 					return sqlx.NewDb(db, "postgres")
@@ -222,7 +222,7 @@ func TestEventRepository_Update(t *testing.T) {
 						{
 							ID:      "123",
 							EventID: "123",
-							UserID:  "123",
+							UserID:  123,
 							Status:  core.InvitationStatus_Unknown,
 							Token:   "123",
 						},
@@ -239,7 +239,7 @@ func TestEventRepository_Update(t *testing.T) {
 					mock.ExpectBegin()
 					mock.ExpectExec(`UPDATE event SET`).WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.ExpectExec(`INSERT INTO schedule`).WillReturnResult(sqlmock.NewResult(1, 1))
-					mock.ExpectExec(`INSERT INTO invitation`).WillReturnError(errors.New("error"))
+					mock.ExpectExec(`INSERT INTO invitation`).WillReturnError(errors.New("error")) //nolint:goerr113
 					mock.ExpectRollback()
 					mock.MatchExpectationsInOrder(true)
 
@@ -265,7 +265,7 @@ func TestEventRepository_Update(t *testing.T) {
 						{
 							ID:      "123",
 							EventID: "123",
-							UserID:  "123",
+							UserID:  123,
 							Status:  core.InvitationStatus_Unknown,
 							Token:   "123",
 						},
@@ -296,6 +296,8 @@ func TestEventRepository_FindByID(t *testing.T) {
 		ctx context.Context
 		id  string
 	}
+
+	now := time.Now()
 	tests := []struct {
 		name    string
 		fields  fields
@@ -309,9 +311,12 @@ func TestEventRepository_FindByID(t *testing.T) {
 				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
 
-					mock.ExpectQuery(`^SELECT .+ FROM event`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("123"))
-					mock.ExpectQuery(`^SELECT .+ FROM schedule`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
-					mock.ExpectQuery(`^SELECT .+ FROM invitation`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
+					mock.ExpectQuery(`SELECT .+ FROM event`).WithArgs("123").WillReturnRows(
+						sqlmock.NewRows([]string{"id", "title", "description", "timezone", "created_by", "created_at", "updated_at"}).
+							AddRow("123", "title", "desc", "Asia/Jakarta", "1", now, now),
+					)
+					mock.ExpectQuery(`SELECT .+ FROM schedule`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
+					mock.ExpectQuery(`SELECT .+ FROM invitation`).WithArgs("123").WillReturnRows(sqlmock.NewRows([]string{"id"}))
 					mock.MatchExpectationsInOrder(true)
 
 					return sqlx.NewDb(db, "pgx")
@@ -323,6 +328,12 @@ func TestEventRepository_FindByID(t *testing.T) {
 			},
 			want: &core.Event{
 				ID:          "123",
+				Title:       "title",
+				Description: "desc",
+				Timezone:    "Asia/Jakarta",
+				CreatedBy:   "1",
+				CreatedAt:   now,
+				UpdatedAt:   &now,
 				Invitations: []core.Invitation(nil),
 				Schedules:   []core.Schedule(nil),
 			},
@@ -333,7 +344,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 				dbMock: func(t *testing.T) *sqlx.DB {
 					db, mock, _ := sqlmock.New()
 
-					mock.ExpectQuery(`^SELECT .+ FROM event`).WithArgs("123").WillReturnError(errors.New("error"))
+					mock.ExpectQuery(`SELECT .+ FROM event`).WithArgs("123").WillReturnError(errors.New("error")) //nolint:goerr113
 					mock.MatchExpectationsInOrder(true)
 
 					return sqlx.NewDb(db, "pgx")

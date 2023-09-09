@@ -2,11 +2,10 @@ package pkg
 
 import (
 	"errors"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var ErrInterrupted = errors.New("interrupted")
@@ -30,6 +29,7 @@ func GracefulShutdown(fn func() error) func() {
 
 	return func() {
 		defer close(errCh)
-		log.Error(<-errCh)
+		err := <-errCh
+		slog.Error(err.Error())
 	}
 }

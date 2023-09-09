@@ -5,13 +5,15 @@ import (
 	"embed"
 	"flag"
 	"fmt"
+	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -30,7 +32,11 @@ func run() error {
 	flag.StringVar(&grpcServerTarget, "target", "", "The address of grpc server")
 	flag.Parse()
 
-	log.SetFormatter(&log.JSONFormatter{})
+	slogHandler := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelInfo,
+	}))
+	slog.SetDefault(slogHandler)
 
 	cfg, err := internal.LoadConfig(".")
 	if err != nil {
@@ -95,7 +101,8 @@ func newGRPCGatewayServer(grpcTarget string) (*gRPCGatewayServer, error) {
 
 	return &gRPCGatewayServer{
 		srv: &http.Server{
-			Handler: r,
+			Handler:           r,
+			ReadHeaderTimeout: 200 * time.Millisecond,
 		},
 	}, nil
 }

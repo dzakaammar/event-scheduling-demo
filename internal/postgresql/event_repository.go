@@ -3,61 +3,80 @@ package postgresql
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/dzakaammar/event-scheduling-example/internal/core"
+	"github.com/dzakaammar/event-scheduling-example/internal/postgresql/gen"
 	"github.com/jmoiron/sqlx"
-	logger "github.com/sirupsen/logrus"
 )
 
 type EventRepository struct {
-	dbConn *sqlx.DB
+	dbConn  *sqlx.DB
+	queries *gen.Queries
 }
 
 func NewEventRepository(dbConn *sqlx.DB) *EventRepository {
 	return &EventRepository{
-		dbConn: dbConn,
+		dbConn:  dbConn,
+		queries: gen.New(dbConn),
 	}
 }
 
-func (e *EventRepository) Store(ctx context.Context, event *core.Event) error {
-	log := logger.WithFields(logger.Fields{
-		"event": event,
-	})
-
-	tx, err := e.dbConn.BeginTxx(ctx, &sql.TxOptions{})
+func (e *EventRepository) Store(ctx context.Context, event *core.Event) error { //nolint:funlen,gocognit
+	tx, err := e.dbConn.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return err
 	}
 	defer func() {
 		rollbackErr := tx.Rollback()
-		if rollbackErr != sql.ErrTxDone {
-			log.Error(rollbackErr)
+		if rollbackErr != nil && !errors.Is(rollbackErr, sql.ErrTxDone) {
+			slog.Error(rollbackErr.Error())
 		}
 	}()
 
-	createEventSql := "INSERT INTO event (id, title, description, timezone, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)"
-	_, err = tx.ExecContext(ctx, createEventSql, event.ID, event.Title, event.Description, event.Timezone, event.CreatedBy, time.Now(), time.Now())
+	err = e.queries.WithTx(tx).CreateEvent(ctx, gen.CreateEventParams{
+		ID:          event.ID,
+		Title:       event.Title,
+		Description: event.Description,
+		Timezone:    event.Timezone,
+		CreatedBy:   event.CreatedBy,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   sql.NullTime{Time: time.Now()},
+	})
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return err
 	}
 
-	createScheduleSql := "INSERT INTO schedule (id, event_id, start_time, duration, is_full_day, recurring_interval, recurring_type) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 	for _, schedule := range event.Schedules {
-		_, err = tx.ExecContext(ctx, createScheduleSql, schedule.ID, event.ID, schedule.StartTime, schedule.DurationInMinutes, schedule.IsFullDay, schedule.RecurringInterval, schedule.RecurringType)
+		err = e.queries.WithTx(tx).CreateSchedule(ctx, gen.CreateScheduleParams{
+			ID:                schedule.ID,
+			EventID:           event.ID,
+			StartTime:         schedule.StartTime,
+			Duration:          schedule.DurationInMinutes,
+			IsFullDay:         schedule.IsFullDay,
+			RecurringInterval: schedule.RecurringInterval,
+			RecurringType:     string(schedule.RecurringType),
+		})
 		if err != nil {
-			log.Error(err)
+			slog.Error(err.Error())
 			return err
 		}
 	}
 
-	createInvitationSql := "INSERT INTO invitation (id, event_id, user_id, token, status) VALUES ($1, $2, $3, $4, $5)"
 	for _, invitation := range event.Invitations {
-		_, err = tx.ExecContext(ctx, createInvitationSql, invitation.ID, event.ID, invitation.UserID, invitation.Token, invitation.Status)
+		err = e.queries.WithTx(tx).CreateInvitation(ctx, gen.CreateInvitationParams{
+			ID:      invitation.ID,
+			EventID: invitation.EventID,
+			UserID:  int32(invitation.UserID),
+			Token:   invitation.Token,
+			Status:  int16(invitation.Status),
+		})
 		if err != nil {
-			log.Error(err)
+			slog.Error(err.Error())
 			return err
 		}
 	}
@@ -66,55 +85,59 @@ func (e *EventRepository) Store(ctx context.Context, event *core.Event) error {
 }
 
 func (e *EventRepository) DeleteByID(ctx context.Context, id string) error {
-	_, err := e.dbConn.ExecContext(ctx, "DELETE FROM event WHERE id = $1", id)
-	if err != nil {
-		logger.WithField("id", id).Error(err)
-		return err
-	}
-	return nil
+	return e.queries.DeleteEvent(ctx, id)
 }
 
-func (e *EventRepository) Update(ctx context.Context, event *core.Event) error {
-	log := logger.WithFields(logger.Fields{
-		"event": event,
-	})
-
-	tx, err := e.dbConn.BeginTxx(ctx, &sql.TxOptions{})
+func (e *EventRepository) Update(ctx context.Context, event *core.Event) error { //nolint:gocognit
+	tx, err := e.dbConn.BeginTx(ctx, &sql.TxOptions{})
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return err
 	}
 	defer func() {
 		rollbackErr := tx.Rollback()
-		if rollbackErr != sql.ErrTxDone {
-			log.Error(rollbackErr)
+		if rollbackErr != nil && !errors.Is(rollbackErr, sql.ErrTxDone) {
+			slog.Error(rollbackErr.Error())
 		}
 	}()
 
-	updateSql := `UPDATE event SET title = $1, description = $2, timezone = $3, updated_at = $4`
-	_, err = tx.ExecContext(ctx, updateSql, event.Title, event.Description, event.Timezone, time.Now())
+	err = e.queries.WithTx(tx).UpdateEvent(ctx, gen.UpdateEventParams{
+		Title:       event.Title,
+		Description: event.Description,
+		Timezone:    event.Timezone,
+	})
 	if err != nil {
-		log.Error(err)
-		return nil
+		slog.Error(err.Error())
+		return err
 	}
 
-	upsertScheduleSql := `INSERT INTO schedule (id, event_id, start_time, duration, is_full_day, recurring_interval, recurring_type) VALUES ($1, $2, $3, $4, $5, $6, $7)
-						ON CONFLICT (id, event_id)
-						DO UPDATE SET start_time = $3, duration = $4, recurring_interval = $5, recurring_type = $6`
 	for _, schedule := range event.Schedules {
-		_, err = tx.ExecContext(ctx, upsertScheduleSql, schedule.ID, event.ID, schedule.StartTime, schedule.DurationInMinutes, schedule.IsFullDay, schedule.RecurringInterval, schedule.RecurringType)
+		err = e.queries.WithTx(tx).UpsertSchedule(ctx, gen.UpsertScheduleParams{
+			ID:                schedule.ID,
+			EventID:           event.ID,
+			StartTime:         schedule.StartTime,
+			Duration:          schedule.DurationInMinutes,
+			IsFullDay:         schedule.IsFullDay,
+			RecurringInterval: schedule.RecurringInterval,
+			RecurringType:     string(schedule.RecurringType),
+		})
 		if err != nil {
-			log.Error(err)
+			slog.Error(err.Error())
+			return err
 		}
 	}
 
-	upsertInvitationSql := `INSERT INTO invitation (id, event_id, user_id, token, status) VALUES ($1, $2, $3, $4, $5)
-						ON CONFLICT (id, event_id)
-						DO UPDATE SET user_id = $3, token = $4, status = $5`
 	for _, invitation := range event.Invitations {
-		_, err = tx.ExecContext(ctx, upsertInvitationSql, invitation.ID, event.ID, invitation.UserID, invitation.Token, invitation.Status)
+		err = e.queries.WithTx(tx).UpsertInvitation(ctx, gen.UpsertInvitationParams{
+			ID:      invitation.ID,
+			EventID: event.ID,
+			UserID:  invitation.UserID,
+			Token:   invitation.Token,
+			Status:  int16(invitation.Status),
+		})
 		if err != nil {
-			log.Error(err)
+			slog.Error(err.Error())
+			return err
 		}
 	}
 
@@ -122,21 +145,25 @@ func (e *EventRepository) Update(ctx context.Context, event *core.Event) error {
 }
 
 func (e *EventRepository) FindByID(ctx context.Context, id string) (*core.Event, error) {
-	log := logger.WithFields(logger.Fields{
-		"id": id,
-	})
-
-	var event core.Event
-	err := e.dbConn.QueryRowxContext(ctx, `SELECT * FROM event WHERE id = $1`, id).StructScan(&event)
+	queryEvent, err := e.queries.FindEventByID(ctx, id)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, err
+	}
+	event := core.Event{
+		ID:          queryEvent.ID,
+		Title:       queryEvent.Title,
+		Description: queryEvent.Description,
+		Timezone:    queryEvent.Timezone,
+		CreatedBy:   queryEvent.CreatedBy,
+		CreatedAt:   queryEvent.CreatedAt,
+		UpdatedAt:   &queryEvent.UpdatedAt.Time,
 	}
 
 	var schedules []core.Schedule
 	err = e.dbConn.SelectContext(ctx, &schedules, `SELECT * FROM schedule WHERE event_id = $1`, id)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, err
 	}
 	event.Schedules = schedules
@@ -144,7 +171,7 @@ func (e *EventRepository) FindByID(ctx context.Context, id string) (*core.Event,
 	var invitations []core.Invitation
 	err = e.dbConn.SelectContext(ctx, &invitations, `SELECT * FROM invitation WHERE event_id = $1`, id)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, err
 	}
 	event.Invitations = invitations

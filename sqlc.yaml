@@ -1,0 +1,11 @@
+version: "2"
+project:
+    id: "event-scheduling-demo"
+sql:
+    - engine: "postgresql"
+      schema: "sql/migrations"
+      queries: "sql/queries"
+      gen:
+          go:
+              package: "gen"
+              out: "internal/postgresql/gen"

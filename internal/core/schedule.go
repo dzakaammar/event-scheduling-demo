@@ -29,10 +29,10 @@ func (r RecurringType) interval() int64 {
 }
 
 type Schedule struct {
-	ID                string        `validate:"required" db:"id"`
-	EventID           string        `validate:"required" db:"event_id"`
-	StartTime         int64         `validate:"required" db:"start_time"`
-	DurationInMinutes int64         `validate:"required" db:"duration"`
+	ID                string        `db:"id" validate:"required"`
+	EventID           string        `db:"event_id" validate:"required"`
+	StartTime         int64         `db:"start_time" validate:"required"`
+	DurationInMinutes int64         `db:"duration" validate:"required"`
 	IsFullDay         bool          `db:"is_full_day"`
 	RecurringType     RecurringType `db:"recurring_type"`
 	RecurringInterval int64         `db:"recurring_interval"`

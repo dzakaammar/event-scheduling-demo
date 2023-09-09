@@ -249,13 +249,12 @@ func RegisterAPIHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/CreateEvent", runtime.WithHTTPPathPattern("/api/v1/events"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/CreateEvent", runtime.WithHTTPPathPattern("/api/v1/events"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_API_CreateEvent_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_API_CreateEvent_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -273,13 +272,12 @@ func RegisterAPIHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/UpdateEvent", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/UpdateEvent", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_API_UpdateEvent_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_API_UpdateEvent_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -297,13 +295,12 @@ func RegisterAPIHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/DeleteEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/DeleteEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_API_DeleteEventByID_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_API_DeleteEventByID_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -321,13 +318,12 @@ func RegisterAPIHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/FindEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.v1.API/FindEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_API_FindEventByID_0(ctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_API_FindEventByID_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -369,7 +365,7 @@ func RegisterAPIHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, 
 
 // RegisterAPIHandler registers the http handlers for service API to "mux".
 // The handlers forward requests to the grpc endpoint over "conn".
-func RegisterAPIHandler(ctx context.Context, mux *runtime.ServeMux, conn *grpc.ClientConn) error {
+func RegisterAPIHandler(ctx context.Context, mux *runtime.ServeMux, conn grpc.ClientConnInterface) error {
 	return RegisterAPIHandlerClient(ctx, mux, NewAPIClient(conn))
 }
 
@@ -384,13 +380,12 @@ func RegisterAPIHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/CreateEvent", runtime.WithHTTPPathPattern("/api/v1/events"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/CreateEvent", runtime.WithHTTPPathPattern("/api/v1/events"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_API_CreateEvent_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_API_CreateEvent_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -405,13 +400,12 @@ func RegisterAPIHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/UpdateEvent", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/UpdateEvent", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_API_UpdateEvent_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_API_UpdateEvent_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -426,13 +420,12 @@ func RegisterAPIHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/DeleteEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/DeleteEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_API_DeleteEventByID_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_API_DeleteEventByID_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -447,13 +440,12 @@ func RegisterAPIHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		var err error
-		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/FindEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
+		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/proto.v1.API/FindEventByID", runtime.WithHTTPPathPattern("/api/v1/events/{id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_API_FindEventByID_0(ctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_API_FindEventByID_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)

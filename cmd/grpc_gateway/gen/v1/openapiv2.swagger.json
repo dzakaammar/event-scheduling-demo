@@ -1,0 +1,339 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Event Scheduling Demo",
+    "version": "1.0",
+    "contact": {
+      "name": "Dzaka Ammar Ibrahim",
+      "url": "https://github.com/dzakaammar",
+      "email": "dzakaammar@gmail.com"
+    },
+    "license": {
+      "name": "BSD 3-Clause License",
+      "url": "https://github.com/grpc-ecosystem/grpc-gateway/blob/master/LICENSE.txt"
+    }
+  },
+  "tags": [
+    {
+      "name": "API"
+    }
+  ],
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/events": {
+      "post": {
+        "operationId": "API_CreateEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateEventResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Event"
+            }
+          }
+        ],
+        "tags": [
+          "API"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/{id}": {
+      "get": {
+        "operationId": "API_FindEventByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FindEventByIDResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "id is event's ID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "API"
+        ]
+      },
+      "delete": {
+        "operationId": "API_DeleteEventByID",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "id is event's ID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "API"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "put": {
+        "operationId": "API_UpdateEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "description": "id is event's ID",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "description": "event is the event data that you want to update",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1Event"
+            }
+          }
+        ],
+        "tags": [
+          "API"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "HealthCheckResponseServingStatus": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "SERVING",
+        "NOT_SERVING",
+        "SERVICE_UNKNOWN"
+      ],
+      "default": "UNKNOWN",
+      "title": "ServingStatus"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1CreateEventResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      },
+      "title": "CreateEventResponse"
+    },
+    "v1Event": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "id is event's ID"
+        },
+        "title": {
+          "type": "string",
+          "title": "title is event's title"
+        },
+        "description": {
+          "type": "string",
+          "title": "description is event's description"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "title": "attendees is the attendees of the event, multiple of user id"
+        },
+        "schedule": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Schedule"
+          },
+          "title": "Schedules is schedules of the event. An event can has multiple schedule"
+        },
+        "createdAt": {
+          "type": "string",
+          "title": "created_at is creation time of an event"
+        },
+        "createdBy": {
+          "type": "string",
+          "title": "created_by is creator's user id"
+        },
+        "lastUpdatedAt": {
+          "type": "string",
+          "title": "last_updated_at is last update of the data"
+        },
+        "timezone": {
+          "type": "string",
+          "title": "timezone is the timezone of an event, i.e: 'Asia/Jakarta'"
+        }
+      },
+      "title": "Event"
+    },
+    "v1FindEventByIDResponse": {
+      "type": "object",
+      "properties": {
+        "event": {
+          "$ref": "#/definitions/v1Event",
+          "title": "Event is an event"
+        }
+      },
+      "title": "FindEventByIDResponse"
+    },
+    "v1HealthCheckResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/HealthCheckResponseServingStatus"
+        }
+      },
+      "title": "HealthCheckResponse"
+    },
+    "v1RecurringType": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "DAILY",
+        "EVERY_WEEK"
+      ],
+      "default": "NONE",
+      "description": "- NONE: NONE is no recurring type\n - DAILY: DAILY is daily\n - EVERY_WEEK: EVERY_WEEK is every week",
+      "title": "RecurringType"
+    },
+    "v1Schedule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "id is schedule's ID"
+        },
+        "startTime": {
+          "type": "string",
+          "title": "start_time is the start time of schedule"
+        },
+        "endTime": {
+          "type": "string",
+          "title": "end_time is the end time of schedule"
+        },
+        "recurringType": {
+          "$ref": "#/definitions/v1RecurringType",
+          "title": "recurring_type is Recurring type of the schedule"
+        },
+        "isFullDay": {
+          "type": "boolean",
+          "title": "is_full_day is a flag to mark a full-day schedule or not"
+        }
+      },
+      "title": "Schedule"
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  }
+}

@@ -2,11 +2,11 @@ package endpoint
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
 	"github.com/dzakaammar/event-scheduling-example/internal/core"
-	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
@@ -27,13 +27,13 @@ func NewGRPCEndpoint(svc core.SchedulingService) *GRPCEndpoint {
 func (g *GRPCEndpoint) CreateEvent(ctx context.Context, req *v1.CreateEventRequest) (*v1.CreateEventResponse, error) {
 	createReq, err := parseCreateEventRequest(ctx, req)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	err = g.svc.CreateEvent(ctx, createReq)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, mapErrToStatusCode(err)
 	}
 	return &v1.CreateEventResponse{
@@ -44,13 +44,13 @@ func (g *GRPCEndpoint) CreateEvent(ctx context.Context, req *v1.CreateEventReque
 func (g *GRPCEndpoint) DeleteEventByID(ctx context.Context, req *v1.DeleteEventByIDRequest) (*emptypb.Empty, error) {
 	delReq, err := parseDeleteEventByIDtRequest(ctx, req)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	err = g.svc.DeleteEventByID(ctx, delReq)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, mapErrToStatusCode(err)
 	}
 	return &emptypb.Empty{}, nil
@@ -59,13 +59,13 @@ func (g *GRPCEndpoint) DeleteEventByID(ctx context.Context, req *v1.DeleteEventB
 func (g *GRPCEndpoint) UpdateEvent(ctx context.Context, req *v1.UpdateEventRequest) (*emptypb.Empty, error) {
 	updateReq, err := parseUpdateEventByIDRequest(ctx, req)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
 	err = g.svc.UpdateEvent(ctx, updateReq)
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, mapErrToStatusCode(err)
 	}
 	return &emptypb.Empty{}, nil
@@ -74,7 +74,7 @@ func (g *GRPCEndpoint) UpdateEvent(ctx context.Context, req *v1.UpdateEventReque
 func (g *GRPCEndpoint) FindEventByID(ctx context.Context, req *v1.FindEventByIDRequest) (*v1.FindEventByIDResponse, error) {
 	event, err := g.svc.FindEventByID(ctx, &core.FindEventByIDRequest{EventID: req.GetId()})
 	if err != nil {
-		log.Error(err)
+		slog.Error(err.Error())
 		return nil, mapErrToStatusCode(err)
 	}
 
@@ -192,7 +192,7 @@ func parseSchedules(sch []*v1.Schedule, eventID string) ([]core.Schedule, error)
 	return schedules, nil
 }
 
-func parseInvitations(attendees []string, eventID string) []core.Invitation {
+func parseInvitations(attendees []int32, eventID string) []core.Invitation {
 	invitations := make([]core.Invitation, len(attendees))
 	for index, userID := range attendees {
 		i := core.NewInvitation(eventID, userID)
@@ -230,7 +230,7 @@ func parseEventToPB(event *core.Event) (*v1.Event, error) {
 	}
 	e.Schedule = schedules
 
-	attendees := make([]string, len(event.Invitations))
+	attendees := make([]int32, len(event.Invitations))
 	for index, inv := range event.Invitations {
 		attendees[index] = inv.UserID
 	}
