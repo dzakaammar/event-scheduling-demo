@@ -17,12 +17,10 @@ test:
 	go test -race -v -count=1 -cover -coverprofile $(COVER_PROFILE_FILE) $(TEST_ARGS) $(TEST_TARGET_DIR)
 
 ## to run integration test with docker container
-integration.test: TEST_ARGS=--tags=integration
-integration.test: TEST_TARGET_DIR=./internal/endpoint
 integration.test:
-	go run github.com/onsi/ginkgo/v2/ginkgo -v $(TEST_ARGS) $(TEST_TARGET_DIR)
-
-## to check the total of test coverage
+	go run github.com/onsi/ginkgo/v2/ginkgo --label-filter="integration" -r -p --succinct --race --trace --fail-fast
+	
+## to check the total of test coverage 
 check.coverage:
 	go tool cover -func $(COVER_PROFILE_FILE) | grep total | awk '{print substr($$3, 1, length($$3)-1)}' | awk '{if ($$0 <= 90) exit 1 ; else exit 0 }'
 

@@ -1,5 +1,3 @@
-//go:build integration
-
 package endpoint_test
 
 import (
@@ -7,7 +5,7 @@ import (
 
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
 	"github.com/dzakaammar/event-scheduling-example/internal/core"
-	"github.com/dzakaammar/event-scheduling-example/internal/endpoint"
+	grpcEndpoint "github.com/dzakaammar/event-scheduling-example/internal/endpoint"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
 	"github.com/dzakaammar/event-scheduling-example/internal/scheduling"
 	. "github.com/onsi/ginkgo/v2"
@@ -16,183 +14,203 @@ import (
 )
 
 var _ = Describe("Creating an Event", func() {
-	eventRepo := postgresql.NewEventRepository(db)
-	schedulingSvc := scheduling.NewService(eventRepo)
-	endpoint := endpoint.NewGRPCEndpoint(schedulingSvc)
-
-	var basedReq *v1.CreateEventRequest
+	var (
+		eventRepo     *postgresql.EventRepository
+		schedulingSvc *scheduling.Service
+		endpoint      *grpcEndpoint.GRPCEndpoint
+	)
 	BeforeEach(func() {
-		basedReq = &v1.CreateEventRequest{
-			Event: &v1.Event{
-				Title:       "test",
-				Description: "test description",
-				Timezone:    "Asia/Jakarta",
-				Attendees:   []string{"2", "3"},
-				Schedule: []*v1.Schedule{
-					{
-						StartTime:     "2022-01-01T00:00:00+07:00",
-						EndTime:       "2022-01-01T01:00:00+07:00",
-						IsFullDay:     false,
-						RecurringType: v1.RecurringType_NONE,
-					},
-					{
-						StartTime:     "2022-01-01T01:00:00+07:00",
-						EndTime:       "2022-01-01T02:00:00+07:00",
-						IsFullDay:     false,
-						RecurringType: v1.RecurringType_NONE,
+		eventRepo = postgresql.NewEventRepository(db)
+		schedulingSvc = scheduling.NewService(eventRepo)
+		endpoint = grpcEndpoint.NewGRPCEndpoint(schedulingSvc)
+	})
+
+	// AfterAll(func() {})
+
+	Context("Run", func() {
+		var basedReq *v1.CreateEventRequest
+		BeforeEach(func() {
+			basedReq = &v1.CreateEventRequest{
+				Event: &v1.Event{
+					Title:       "test",
+					Description: "test description",
+					Timezone:    "Asia/Jakarta",
+					Attendees:   []int32{2, 3},
+					Schedule: []*v1.Schedule{
+						{
+							StartTime:     "2022-01-01T00:00:00+07:00",
+							EndTime:       "2022-01-01T01:00:00+07:00",
+							IsFullDay:     false,
+							RecurringType: v1.RecurringType_NONE,
+						},
+						{
+							StartTime:     "2022-01-01T01:00:00+07:00",
+							EndTime:       "2022-01-01T02:00:00+07:00",
+							IsFullDay:     false,
+							RecurringType: v1.RecurringType_NONE,
+						},
 					},
 				},
-			},
-		}
-	})
-
-	When("user is unauthorized", func() {
-		It("returns error", func() {
-			res, err := endpoint.CreateEvent(context.Background(), basedReq)
-			Expect(err).ShouldNot(BeNil())
-			Expect(res).Should(BeNil())
-		})
-	})
-
-	When("user is authorized", func() {
-		var (
-			ctx     context.Context
-			actorID = "1"
-		)
-		BeforeEach(func() {
-			ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{
-				"Authorization": []string{actorID},
-			})
+			}
 		})
 
-		When("the start time format is invalid", func() {
+		When("user is unauthorized", func() {
 			It("returns error", func() {
-				basedReq.Event.Schedule[0].StartTime = "invalid time"
-				res, err := endpoint.CreateEvent(ctx, basedReq)
+				res, err := endpoint.CreateEvent(context.Background(), basedReq)
 				Expect(err).ShouldNot(BeNil())
 				Expect(res).Should(BeNil())
 			})
 		})
 
-		When("the end time format is invalid", func() {
-			It("returns error", func() {
-				basedReq.Event.Schedule[0].EndTime = "invalid time"
-				res, err := endpoint.CreateEvent(ctx, basedReq)
-				Expect(err).ShouldNot(BeNil())
-				Expect(res).Should(BeNil())
+		When("user is authorized", func() {
+			var (
+				ctx     context.Context
+				actorID = "1"
+			)
+			BeforeEach(func() {
+				ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{
+					"Authorization": []string{actorID},
+				})
 			})
-		})
 
-		When("the timezone format is invalid", func() {
-			It("returns error", func() {
-				basedReq.Event.Timezone = "invalid"
-				res, err := endpoint.CreateEvent(ctx, basedReq)
-				Expect(err).ShouldNot(BeNil())
-				Expect(res).Should(BeNil())
+			When("the start time format is invalid", func() {
+				It("returns error", func() {
+					basedReq.Event.Schedule[0].StartTime = "invalid time"
+					res, err := endpoint.CreateEvent(ctx, basedReq)
+					Expect(err).ShouldNot(BeNil())
+					Expect(res).Should(BeNil())
+				})
 			})
-		})
 
-		When("there's no schedule", func() {
-			It("returns error", func() {
-				basedReq.Event.Schedule = nil
-				res, err := endpoint.CreateEvent(ctx, basedReq)
-				Expect(err).ShouldNot(BeNil())
-				Expect(res).Should(BeNil())
+			When("the end time format is invalid", func() {
+				It("returns error", func() {
+					basedReq.Event.Schedule[0].EndTime = "invalid time"
+					res, err := endpoint.CreateEvent(ctx, basedReq)
+					Expect(err).ShouldNot(BeNil())
+					Expect(res).Should(BeNil())
+				})
 			})
-		})
 
-		When("the event data is valid", func() {
-			It("creates the event", func() {
-				res, err := endpoint.CreateEvent(ctx, basedReq)
-				Expect(err).Should(BeNil())
-				Expect(res).ShouldNot(BeNil())
-
-				e, err := eventRepo.FindByID(context.Background(), res.GetId())
-				Expect(err).Should(BeNil())
-				Expect(e).ShouldNot(BeNil())
-
-				Expect(e.ID).To(Equal(res.GetId()))
-				Expect(e.Title).To(Equal(basedReq.Event.Title))
-				Expect(e.Description).To(Equal(basedReq.Event.Description))
-				Expect(e.Timezone).To(Equal(basedReq.Event.Timezone))
-				Expect(len(e.Schedules)).To(Equal(len(basedReq.Event.Schedule)))
-				Expect(len(e.Invitations)).To(Equal(len(basedReq.Event.Attendees)))
-				Expect(e.CreatedBy).To(Equal(actorID))
-				Expect(e.CreatedAt).NotTo(BeNil())
+			When("the timezone format is invalid", func() {
+				It("returns error", func() {
+					basedReq.Event.Timezone = "invalid"
+					res, err := endpoint.CreateEvent(ctx, basedReq)
+					Expect(err).ShouldNot(BeNil())
+					Expect(res).Should(BeNil())
+				})
 			})
-		})
 
-		When("the event has no attendees", func() {
-			It("creates the event", func() {
-				basedReq.Event.Attendees = nil
-				res, err := endpoint.CreateEvent(ctx, basedReq)
-				Expect(err).Should(BeNil())
-				Expect(res).ShouldNot(BeNil())
+			When("there's no schedule", func() {
+				It("returns error", func() {
+					basedReq.Event.Schedule = nil
+					res, err := endpoint.CreateEvent(ctx, basedReq)
+					Expect(err).ShouldNot(BeNil())
+					Expect(res).Should(BeNil())
+				})
+			})
 
-				e, err := eventRepo.FindByID(context.Background(), res.GetId())
-				Expect(err).Should(BeNil())
-				Expect(e).ShouldNot(BeNil())
+			When("the event data is valid", func() {
+				It("creates the event", func() {
+					res, err := endpoint.CreateEvent(ctx, basedReq)
+					Expect(err).Should(BeNil())
+					Expect(res).ShouldNot(BeNil())
 
-				Expect(e.ID).To(Equal(res.GetId()))
+					e, err := eventRepo.FindByID(context.Background(), res.GetId())
+					Expect(err).Should(BeNil())
+					Expect(e).ShouldNot(BeNil())
+
+					Expect(e.ID).To(Equal(res.GetId()))
+					Expect(e.Title).To(Equal(basedReq.Event.Title))
+					Expect(e.Description).To(Equal(basedReq.Event.Description))
+					Expect(e.Timezone).To(Equal(basedReq.Event.Timezone))
+					Expect(len(e.Schedules)).To(Equal(len(basedReq.Event.Schedule)))
+					Expect(len(e.Invitations)).To(Equal(len(basedReq.Event.Attendees)))
+					Expect(e.CreatedBy).To(Equal(actorID))
+					Expect(e.CreatedAt).NotTo(BeNil())
+				})
+			})
+
+			When("the event has no attendees", func() {
+				It("creates the event", func() {
+					basedReq.Event.Attendees = nil
+					res, err := endpoint.CreateEvent(ctx, basedReq)
+					Expect(err).Should(BeNil())
+					Expect(res).ShouldNot(BeNil())
+
+					e, err := eventRepo.FindByID(context.Background(), res.GetId())
+					Expect(err).Should(BeNil())
+					Expect(e).ShouldNot(BeNil())
+
+					Expect(e.ID).To(Equal(res.GetId()))
+				})
 			})
 		})
 	})
 })
 
 var _ = Describe("Deleting an Event", func() {
-	eventRepo := postgresql.NewEventRepository(db)
-	schedulingSvc := scheduling.NewService(eventRepo)
-	endpoint := endpoint.NewGRPCEndpoint(schedulingSvc)
-
-	var event *core.Event
+	var (
+		eventRepo     *postgresql.EventRepository
+		schedulingSvc *scheduling.Service
+		endpoint      *grpcEndpoint.GRPCEndpoint
+	)
 	BeforeEach(func() {
-		event = core.NewEvent("test_actor")
-		err := eventRepo.Store(context.Background(), event)
-		Expect(err).Should(BeNil())
+		eventRepo = postgresql.NewEventRepository(db)
+		schedulingSvc = scheduling.NewService(eventRepo)
+		endpoint = grpcEndpoint.NewGRPCEndpoint(schedulingSvc)
 	})
 
-	When("user is unauthorized", func() {
-		It("returns an error", func() {
-			empty, err := endpoint.DeleteEventByID(context.Background(), &v1.DeleteEventByIDRequest{
-				Id: event.ID,
-			})
-			Expect(err).ShouldNot(BeNil())
-			Expect(empty).Should(BeNil())
-
-			e, err := eventRepo.FindByID(context.Background(), event.ID)
-			Expect(err).Should(BeNil())
-			Expect(e).ShouldNot(BeNil())
-		})
-	})
-
-	When("user is authorized", func() {
-		var ctx context.Context
+	Context("Run", func() {
+		var event *core.Event
 		BeforeEach(func() {
-			ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{
-				"Authorization": []string{"test_actor"},
-			})
+			event = core.NewEvent("test_actor")
+			err := eventRepo.Store(context.Background(), event)
+			Expect(err).Should(BeNil())
 		})
 
-		When("the event is exists", func() {
-			It("deletes the data", func() {
-				empty, err := endpoint.DeleteEventByID(ctx, &v1.DeleteEventByIDRequest{
-					Id: event.ID,
-				})
-				Expect(err).Should(BeNil())
-				Expect(empty).ShouldNot(BeNil())
-
-				_, err = eventRepo.FindByID(context.Background(), event.ID)
-				Expect(err).ShouldNot(BeNil())
-			})
-		})
-
-		When("the event is not exists", func() {
+		When("user is unauthorized", func() {
 			It("returns an error", func() {
-				empty, err := endpoint.DeleteEventByID(ctx, &v1.DeleteEventByIDRequest{
-					Id: "invalid id",
+				empty, err := endpoint.DeleteEventByID(context.Background(), &v1.DeleteEventByIDRequest{
+					Id: event.ID,
 				})
 				Expect(err).ShouldNot(BeNil())
 				Expect(empty).Should(BeNil())
+
+				e, err := eventRepo.FindByID(context.Background(), event.ID)
+				Expect(err).Should(BeNil())
+				Expect(e).ShouldNot(BeNil())
+			})
+		})
+
+		When("user is authorized", func() {
+			var ctx context.Context
+			BeforeEach(func() {
+				ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{
+					"Authorization": []string{"test_actor"},
+				})
+			})
+
+			When("the event is exists", func() {
+				It("deletes the data", func() {
+					empty, err := endpoint.DeleteEventByID(ctx, &v1.DeleteEventByIDRequest{
+						Id: event.ID,
+					})
+					Expect(err).Should(BeNil())
+					Expect(empty).ShouldNot(BeNil())
+
+					_, err = eventRepo.FindByID(context.Background(), event.ID)
+					Expect(err).ShouldNot(BeNil())
+				})
+			})
+
+			When("the event is not exists", func() {
+				It("returns an error", func() {
+					empty, err := endpoint.DeleteEventByID(ctx, &v1.DeleteEventByIDRequest{
+						Id: "invalid id",
+					})
+					Expect(err).ShouldNot(BeNil())
+					Expect(empty).Should(BeNil())
+				})
 			})
 		})
 	})

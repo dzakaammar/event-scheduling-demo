@@ -1,11 +1,8 @@
-//go:build integration
-
 package endpoint_test
 
 import (
 	"fmt"
 	"log"
-	"os"
 	"testing"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -23,48 +20,37 @@ var (
 	pool             *dockertest.Pool
 	postgresResource *dockertest.Resource
 
-	dbUrl string
-	db    *sqlx.DB
+	db *sqlx.DB
 )
-
-func TestMain(m *testing.M) {
-	var err error
-	pool, err = dockertest.NewPool("")
-	if err != nil {
-		log.Fatalf("Could not connect to docker: %s", err)
-	}
-	postgresResource = runDockerPostgres(pool)
-
-	migrateDB()
-
-	code := m.Run()
-
-	if err := pool.Purge(postgresResource); err != nil {
-		log.Fatalf("Could not purge postgres resource: %s", err)
-	}
-
-	os.Exit(code)
-}
 
 func TestEndpoints(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Endpoint Suite")
+	RunSpecs(t, "Endpoint Suite", Label("integration"))
 }
 
-func migrateDB() {
-	m, err := migrate.New(
-		"file://../../sql/migrations",
-		dbUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	if err := m.Up(); err != nil {
-		log.Fatal(err)
-	}
-}
+var _ = SynchronizedBeforeSuite(func() []byte {
+	var err error
+	pool, err = dockertest.NewPool("")
+	Expect(err).ShouldNot(HaveOccurred())
 
-func runDockerPostgres(pool *dockertest.Pool) *dockertest.Resource {
-	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
+	dbURL := runDockerPostgres(pool)
+
+	return []byte(dbURL)
+}, func(dbURL []byte) {
+	dbConn, err := sqlx.Open("pgx", string(dbURL))
+	Expect(err).ShouldNot(HaveOccurred())
+
+	db = dbConn
+})
+
+var _ = SynchronizedAfterSuite(func() {
+}, func() {
+	Expect(pool.Purge(postgresResource)).ShouldNot(HaveOccurred())
+})
+
+func runDockerPostgres(pool *dockertest.Pool) string {
+	var err error
+	postgresResource, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Name:       "event_scheduling_demo_it",
 		Repository: "postgres",
 		Tag:        "12-alpine",
@@ -82,18 +68,38 @@ func runDockerPostgres(pool *dockertest.Pool) *dockertest.Resource {
 		log.Fatalf("Could not start postgres resource: %s", err)
 	}
 
-	hostAndPort := resource.GetHostPort("5432/tcp")
-	dbUrl = fmt.Sprintf("postgres://admin:secret@%s/event_scheduling_test?sslmode=disable", hostAndPort)
+	hostAndPort := postgresResource.GetHostPort("5432/tcp")
+	dbUrl := fmt.Sprintf("postgres://admin:secret@%s/event_scheduling_test?sslmode=disable", hostAndPort)
 
-	if err = pool.Retry(func() error {
-		db, err = sqlx.Open("pgx", dbUrl)
+	if err := pool.Retry(func() error {
+		retryConn, err := sqlx.Open("pgx", dbUrl)
 		if err != nil {
 			return err
 		}
-		return db.Ping()
+
+		err = retryConn.Ping()
+		if err != nil {
+			return err
+		}
+
+		return migrateDB(dbUrl)
 	}); err != nil {
 		log.Fatalf("Could not connect to postgres docker: %s", err)
 	}
 
-	return resource
+	return dbUrl
+}
+
+func migrateDB(dbUrl string) error {
+	m, err := migrate.New(
+		"file://../../sql/migrations",
+		dbUrl)
+	if err != nil {
+		return err
+	}
+	if err := m.Up(); err != nil {
+		return err
+	}
+
+	return nil
 }
