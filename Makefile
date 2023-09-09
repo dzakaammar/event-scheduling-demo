@@ -6,8 +6,7 @@ COVER_PROFILE_FILE ?= cover.out
 
 ## to install all dependencies
 deps:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
-	go install github.com/onsi/ginkgo/v2/ginkgo@latest
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 ## to run linter
 lint:
@@ -21,7 +20,7 @@ test:
 integration.test: TEST_ARGS=--tags=integration
 integration.test: TEST_TARGET_DIR=./internal/endpoint
 integration.test:
-	ginkgo -v $(TEST_ARGS) $(TEST_TARGET_DIR)
+	go run github.com/onsi/ginkgo/v2/ginkgo -v $(TEST_ARGS) $(TEST_TARGET_DIR)
 
 ## to check the total of test coverage
 check.coverage:
