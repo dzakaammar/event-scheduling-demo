@@ -27,7 +27,7 @@ jobs:
         run: make lint
 
       - name: Test
-        run: make test COVER_PROFILE_FILE=cover.out
+        run: make test.complete COVER_PROFILE_FILE=cover.out
 
       # disable for now, need some research to get the total coverage
       # - name: Coverage Check
