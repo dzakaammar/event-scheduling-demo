@@ -9,6 +9,7 @@ import (
 
 	"github.com/dzakaammar/event-scheduling-example/cmd/pkg"
 	"github.com/dzakaammar/event-scheduling-example/internal"
+	"github.com/dzakaammar/event-scheduling-example/internal/app"
 	"github.com/dzakaammar/event-scheduling-example/internal/core"
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
 	"github.com/dzakaammar/event-scheduling-example/internal/scheduling"
@@ -33,11 +34,10 @@ func run() error {
 		log.Fatal(err)
 	}
 
-	tp, err := pkg.InitTracerProvider(cfg.OTLPEndpoint)
+	tp, err := pkg.InitTracerProvider(cfg.OTLPEndpoint, "grpc-server")
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	otel.SetTracerProvider(tp)
 
 	dbConn, err := sqlx.Open("pgx", cfg.DbSource)
@@ -60,7 +60,7 @@ func run() error {
 		svc = scheduling.NewInstrumentation(svc)
 	}
 
-	grpcServer := pkg.NewGRPCServer(svc)
+	grpcServer := app.NewGRPCServer(svc)
 	waitForSignal := pkg.GracefulShutdown(func() error {
 		return grpcServer.Start(cfg.GRPCAddress)
 	})

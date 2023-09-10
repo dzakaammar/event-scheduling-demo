@@ -36,6 +36,7 @@ services:
     environment:
       - ENV_GRPC_GATEWAY_ADDRESS=0.0.0.0:8001
       - ENV_GRPC_ADDRESS=grpc_app:8000
+      - ENV_OTEL_EXPORTER_OTLP_ENDPOINT=otel-collector:4317
     depends_on:
       - grpc_app
     volumes:
@@ -51,6 +52,11 @@ services:
       - "16686:16686"
       - "14268"
       - "14250"
+      - "5775:5775"
+      - "6831:6831"
+      - "6832:6832"
+      - "5778:5778"
+      - "9411"
   otel-collector:
     image: otel/opentelemetry-collector-contrib-dev:latest
     profiles: ['all']

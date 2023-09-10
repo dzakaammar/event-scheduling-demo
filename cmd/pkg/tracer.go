@@ -10,7 +10,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-func InitTracerProvider(agentAddr string) (*tracesdk.TracerProvider, error) {
+func InitTracerProvider(agentAddr string, serviceName string) (*tracesdk.TracerProvider, error) {
 	traceClient := otlptracegrpc.NewClient(
 		otlptracegrpc.WithInsecure(),
 		otlptracegrpc.WithEndpoint(agentAddr),
@@ -27,7 +27,7 @@ func InitTracerProvider(agentAddr string) (*tracesdk.TracerProvider, error) {
 		resource.WithTelemetrySDK(),
 		resource.WithProcess(),
 		resource.WithAttributes(
-			semconv.ServiceNameKey.String("event-scheduling-demo"),
+			semconv.ServiceNameKey.String(serviceName),
 		),
 	)
 	if err != nil {
