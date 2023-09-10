@@ -29,6 +29,7 @@ linters:
     - depguard
     - tagalign
     - musttag
+    - dupword
   enable:
     - gocyclo
   presets:
