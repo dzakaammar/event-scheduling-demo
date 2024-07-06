@@ -6,11 +6,22 @@ COVER_PROFILE_FILE ?= cover.out
 
 ## to install all dependencies
 deps:
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
+	go install golang.org/x/vuln/cmd/govulncheck@latest && \
+	go install github.com/golang/mock/mockgen@v1.6.0
+
+## to install tools from tools.go
+install-tools:
+	@echo Installing tools from tools.go
+	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
 ## to run linter
 lint:
 	golangci-lint run --config=.golangci.yml
+
+## to run vulnarability check
+vuln:
+	govulncheck ./...
 	
 ## to run all unit test with coverage
 test:
@@ -34,6 +45,10 @@ run:
 ## to generate defined task
 generate:
 	go generate ./...
+
+## to generate protobuf
+proto:
+	@buf generate
 
 help:
 	@printf "Available targets:\n\n"

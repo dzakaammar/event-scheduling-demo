@@ -26,6 +26,9 @@ jobs:
       - name: Lint
         run: make lint
 
+      - name: Vulnerability Check
+        run: make vuln
+
       - name: Test
         run: make test.complete COVER_PROFILE_FILE=cover.out
 

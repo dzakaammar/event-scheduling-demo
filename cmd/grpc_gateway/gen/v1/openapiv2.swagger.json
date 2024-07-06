@@ -48,11 +48,14 @@
         },
         "parameters": [
           {
-            "name": "body",
+            "name": "event",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1Event"
+              "$ref": "#/definitions/v1Event",
+              "required": [
+                "event"
+              ]
             }
           }
         ],
@@ -102,6 +105,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -136,6 +140,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
+              "type": "object",
               "properties": {}
             }
           },
@@ -155,12 +160,15 @@
             "type": "string"
           },
           {
-            "name": "body",
+            "name": "event",
             "description": "event is the event data that you want to update",
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1Event"
+              "$ref": "#/definitions/v1Event",
+              "required": [
+                "event"
+              ]
             }
           }
         ],
@@ -209,6 +217,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -249,6 +258,7 @@
         "schedule": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Schedule"
           },
           "title": "Schedules is schedules of the event. An event can has multiple schedule"

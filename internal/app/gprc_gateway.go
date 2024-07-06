@@ -10,7 +10,6 @@ import (
 	v1 "github.com/dzakaammar/event-scheduling-example/gen/go/proto/v1"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -66,12 +65,9 @@ func grpcGatewayHandler(grpcServerTarget string) (http.Handler, error) {
 
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithChainUnaryInterceptor(
-			grpc_middleware.ChainUnaryClient(
-				otelgrpc.UnaryClientInterceptor(),
-			),
+		grpc.WithStatsHandler(
+			otelgrpc.NewClientHandler(),
 		),
-		grpc.WithBlock(),
 	}
 
 	err := v1.RegisterAPIHandlerFromEndpoint(context.Background(), handler, grpcServerTarget, opts)

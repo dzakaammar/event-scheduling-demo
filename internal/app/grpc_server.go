@@ -23,8 +23,8 @@ func NewGRPCServer(schedulingSvc core.SchedulingService) *GRPCServer {
 	endpoint := endpoint.NewGRPCEndpoint(schedulingSvc)
 
 	srv := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		grpc_middleware.WithUnaryServerChain(
-			otelgrpc.UnaryServerInterceptor(),
 			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor)),
 		),
 	)
