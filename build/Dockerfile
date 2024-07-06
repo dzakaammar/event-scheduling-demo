@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 LABEL maintainer="Dzaka Ammar Ibrahim"
 RUN apk add --update --no-cache curl ca-certificates git
