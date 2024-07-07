@@ -8,7 +8,8 @@ COVER_PROFILE_FILE ?= cover.out
 deps:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest && \
 	go install golang.org/x/vuln/cmd/govulncheck@latest && \
-	go install github.com/golang/mock/mockgen@v1.6.0
+	go install github.com/golang/mock/mockgen@v1.6.0 && \
+	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 ## to install tools from tools.go
 install-tools:

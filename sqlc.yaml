@@ -1,6 +1,4 @@
 version: "2"
-project:
-    id: "event-scheduling-demo"
 sql:
     - engine: "postgresql"
       schema: "sql/migrations"
