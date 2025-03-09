@@ -9,10 +9,10 @@ COVER_PROFILE_FILE ?= cover.out
 # Default target when just running 'make'
 .DEFAULT_GOAL := help
 
-## Show this help message
+# Show this help message
 help:
 	@printf "Available targets:\n\n"
-	@awk '/^[a-zA-Z\-\_0-9%:\\]+:/ { \
+	@awk '/^[a-zA-Z\-_0-9%:\\]+:/ { \
 		helpMessage = match(lastLine, /^## (.*)/); \
 		if (helpMessage) { \
 			helpCommand = substr($$1, 0, index($$1, ":")); \
@@ -21,8 +21,6 @@ help:
 		} \
 	} { lastLine = $$0 }' $(MAKEFILE_LIST)
 	@printf "\n"
-
-## Install tools
 install-tools:
 	@go install -modfile=go.tool.mod tool
 
