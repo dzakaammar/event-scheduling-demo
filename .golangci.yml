@@ -10,8 +10,7 @@ run:
     - bin
     - cmd/grpc_gateway/gen
     - internal/mock
-  skip-dirs-use-default: true
-  go: "1.18"
+  go: "1.24"
 # output configuration options
 output:
   sort-results: true

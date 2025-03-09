@@ -64,7 +64,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.CreateEventRequest{
 					ActorID: "123",
 					Event: &core.Event{
@@ -105,7 +105,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.CreateEventRequest{
 					ActorID: "123",
 					Event: &core.Event{
@@ -145,7 +145,7 @@ func TestEventService_CreateEvent(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.CreateEventRequest{
 					ActorID: "123",
 					Event: &core.Event{
@@ -220,7 +220,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.DeleteEventByIDRequest{
 					ActorID: "test123",
 					EventID: "123",
@@ -239,7 +239,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.DeleteEventByIDRequest{
 					ActorID: "test123",
 					EventID: "123",
@@ -260,7 +260,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.DeleteEventByIDRequest{
 					ActorID: "test123",
 					EventID: "123",
@@ -277,7 +277,7 @@ func TestEventService_DeleteEventByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.DeleteEventByIDRequest{
 					ActorID: "",
 					EventID: "",
@@ -327,7 +327,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.UpdateEventRequest{
 					ID:      "test123",
 					ActorID: "test123",
@@ -378,7 +378,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.UpdateEventRequest{
 					ID:      "test123",
 					ActorID: "test123",
@@ -428,7 +428,7 @@ func TestEventService_UpdateEvent(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.UpdateEventRequest{
 					ID:      "",
 					ActorID: "",
@@ -511,7 +511,7 @@ func TestEventService_FindEventByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.FindEventByIDRequest{
 					EventID: "123",
 				},
@@ -561,7 +561,7 @@ func TestEventService_FindEventByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.FindEventByIDRequest{
 					EventID: "123",
 				},
@@ -578,7 +578,7 @@ func TestEventService_FindEventByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				req: &core.FindEventByIDRequest{
 					EventID: "",
 				},
