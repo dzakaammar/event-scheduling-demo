@@ -68,7 +68,7 @@ var _ = Describe("Creating an Event", func() {
 				actorID = "1"
 			)
 			BeforeEach(func() {
-				ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{
+				ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{ //nolint:fatcontext
 					"Authorization": []string{actorID},
 				})
 			})
@@ -185,7 +185,7 @@ var _ = Describe("Deleting an Event", func() {
 		When("user is authorized", func() {
 			var ctx context.Context
 			BeforeEach(func() {
-				ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{
+				ctx = metadata.NewIncomingContext(context.Background(), metadata.MD{ //nolint:fatcontext
 					"Authorization": []string{"test_actor"},
 				})
 			})
