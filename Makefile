@@ -59,4 +59,4 @@ generate:
 
 ## Generate code from protocol buffers
 proto:
-	@buf generate
+	@go tool -modfile=go.tool.mod buf generate
