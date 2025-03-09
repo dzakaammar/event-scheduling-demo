@@ -11,6 +11,7 @@ import (
 	"github.com/dzakaammar/event-scheduling-example/internal/postgresql"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewEventRepository(t *testing.T) {
@@ -55,6 +56,7 @@ func TestEventRepository_Store(t *testing.T) {
 			name: "OK",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 
 					mock.ExpectBegin()
@@ -65,7 +67,7 @@ func TestEventRepository_Store(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				event: &core.Event{
 					ID:          "test",
 					Title:       "test123",
@@ -78,6 +80,7 @@ func TestEventRepository_Store(t *testing.T) {
 			name: "Not OK - error",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 					mock.ExpectBegin()
 					mock.ExpectExec(`INSERT INTO event`).WillReturnError(errors.New("error")) //nolint:goerr113
@@ -87,7 +90,7 @@ func TestEventRepository_Store(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				event: &core.Event{
 					ID:          "test",
 					Title:       "test123",
@@ -129,6 +132,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 			name: "OK",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 					mock.ExpectExec(`DELETE FROM event`).WithArgs("test123").WillReturnResult(sqlmock.NewResult(1, 1))
 					mock.MatchExpectationsInOrder(true)
@@ -137,7 +141,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				id:  "test123",
 			},
 		},
@@ -145,6 +149,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 			name: "Not OK - error",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 
 					mock.ExpectExec(`DELETE FROM event`).WithArgs("test123").WillReturnError(errors.New("error")) //nolint:goerr113
@@ -154,7 +159,7 @@ func TestEventRepository_DeleteByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				id:  "test123",
 			},
 			wantErr: true,
@@ -191,6 +196,7 @@ func TestEventRepository_Update(t *testing.T) {
 			name: "OK",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 
 					mock.ExpectBegin()
@@ -204,7 +210,7 @@ func TestEventRepository_Update(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				event: &core.Event{
 					ID: "123",
 					Schedules: []core.Schedule{
@@ -234,6 +240,7 @@ func TestEventRepository_Update(t *testing.T) {
 			name: "Not OK - error",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 
 					mock.ExpectBegin()
@@ -247,7 +254,7 @@ func TestEventRepository_Update(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				event: &core.Event{
 					ID: "123",
 					Schedules: []core.Schedule{
@@ -309,6 +316,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 			name: "OK",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 
 					mock.ExpectQuery(`SELECT .+ FROM event`).WithArgs("123").WillReturnRows(
@@ -323,7 +331,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				id:  "123",
 			},
 			want: &core.Event{
@@ -342,6 +350,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 			name: "Not OK - error",
 			fields: fields{
 				dbMock: func(t *testing.T) *sqlx.DB {
+					t.Helper()
 					db, mock, _ := sqlmock.New()
 
 					mock.ExpectQuery(`SELECT .+ FROM event`).WithArgs("123").WillReturnError(errors.New("error")) //nolint:goerr113
@@ -351,7 +360,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 				},
 			},
 			args: args{
-				ctx: context.Background(),
+				ctx: t.Context(),
 				id:  "123",
 			},
 			want:    nil,
@@ -366,7 +375,7 @@ func TestEventRepository_FindByID(t *testing.T) {
 				assert.Error(t, err)
 				return
 			}
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.EqualValues(t, tt.want, got)
 		})
 	}

@@ -73,7 +73,7 @@ func (e *EventRepository) Store(ctx context.Context, event *core.Event) error { 
 			EventID: invitation.EventID,
 			UserID:  int32(invitation.UserID),
 			Token:   invitation.Token,
-			Status:  int16(invitation.Status),
+			Status:  int16(invitation.Status), //nolint:gosec
 		})
 		if err != nil {
 			slog.Error(err.Error())
@@ -133,7 +133,7 @@ func (e *EventRepository) Update(ctx context.Context, event *core.Event) error {
 			EventID: event.ID,
 			UserID:  invitation.UserID,
 			Token:   invitation.Token,
-			Status:  int16(invitation.Status),
+			Status:  int16(invitation.Status), //nolint:gosec
 		})
 		if err != nil {
 			slog.Error(err.Error())
