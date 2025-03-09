@@ -2,7 +2,7 @@
 run:
   timeout: 1m
   tests: true
-  skip-dirs:
+  exclude-dirs:
     - sql
     - proto
     - gen
@@ -18,8 +18,6 @@ linters:
   disable:
     - gci
     - exhaustive
-    - scopelint
-    - exhaustivestruct
     - exhaustruct
     - paralleltest
     - wrapcheck
@@ -48,6 +46,7 @@ linters-settings:
   gocognit:
     min-complexity: 10
 issues:
+  skip-dirs-use-default: true
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     # Exclude some linters from running on tests files.
