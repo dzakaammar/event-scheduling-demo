@@ -21,8 +21,17 @@ help:
 		} \
 	} { lastLine = $$0 }' $(MAKEFILE_LIST)
 	@printf "\n"
+
+
+## Install tools
 install-tools:
 	@go install -modfile=go.tool.mod tool
+
+## Install test tools
+install-test-tools:
+	@go install -modfile=go.tool.mod github.com/golangci/golangci-lint/cmd/golangci-lint
+	@go install -modfile=go.tool.mod golang.org/x/vuln/cmd/govulncheck
+	@go install -modfile=go.tool.mod github.com/onsi/ginkgo/v2/ginkgo
 
 ## Run code linter
 lint:

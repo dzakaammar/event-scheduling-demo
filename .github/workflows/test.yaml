@@ -20,6 +20,9 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - name: Install Test Tools
+        run: make install-test-tools
+
       - name: Lint
         run: make lint
 
