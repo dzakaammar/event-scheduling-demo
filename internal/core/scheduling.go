@@ -74,7 +74,7 @@ func (f *FindEventByIDRequest) Validate() error {
 	return nil
 }
 
-//go:generate mockgen -destination=../mock/mock_scheduling_service.go -package=mock github.com/dzakaammar/event-scheduling-example/internal/core SchedulingService
+//go:generate go tool -modfile=../../go.tool.mod mockgen -destination=../mock/mock_scheduling_service.go -package=mock github.com/dzakaammar/event-scheduling-example/internal/core SchedulingService
 type SchedulingService interface {
 	CreateEvent(ctx context.Context, req *CreateEventRequest) error
 	DeleteEventByID(ctx context.Context, req *DeleteEventByIDRequest) error

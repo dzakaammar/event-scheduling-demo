@@ -52,7 +52,7 @@ func NewEvent(createdBy string) *Event {
 	}
 }
 
-//go:generate mockgen -destination=../mock/mock_event_repository.go -package=mock github.com/dzakaammar/event-scheduling-example/internal/core EventRepository
+//go:generate go tool -modfile=../../go.tool.mod mockgen -destination=../mock/mock_event_repository.go -package=mock github.com/dzakaammar/event-scheduling-example/internal/core EventRepository
 type EventRepository interface {
 	Store(ctx context.Context, e *Event) error
 	DeleteByID(ctx context.Context, id string) error
