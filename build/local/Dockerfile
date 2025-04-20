@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine
+FROM golang:1.24-alpine
 
 LABEL maintainer="Dzaka Ammar Ibrahim"
 RUN apk add --update --no-cache curl

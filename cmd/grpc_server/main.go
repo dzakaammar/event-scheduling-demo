@@ -1,5 +1,7 @@
 package main
 
+//go:generate go tool -modfile=../../go.tool.mod sqlc generate --file=../../sqlc.yaml
+
 import (
 	"context"
 	"log"

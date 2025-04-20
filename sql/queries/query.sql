@@ -38,6 +38,10 @@ DELETE FROM
 WHERE
     id = $1;
 
+-- name: DeleteAllEvents :exec
+DELETE FROM
+    event;
+
 -- name: UpdateEvent :exec
 UPDATE
     event
